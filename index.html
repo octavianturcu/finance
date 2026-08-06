@@ -1038,6 +1038,16 @@
   }
 
 </style>
+<style id="carphoto-people-tools">
+  .car-cam{position:absolute;right:-6px;bottom:-6px;width:26px;height:26px;border-radius:50%;border:2px solid var(--panel);background:var(--accent);color:#fff;font-size:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 4px 10px -3px rgba(0,0,0,.4);padding:0}
+  .car-rmphoto{position:absolute;right:-6px;top:-6px;width:22px;height:22px;border-radius:50%;border:2px solid var(--panel);background:var(--red);color:#fff;font-size:11px;display:flex;align-items:center;justify-content:center;cursor:pointer;padding:0}
+  .people-tools{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+  .ppl-search{display:flex;align-items:center;gap:8px;background:color-mix(in srgb,var(--panel2) 82%,transparent);border:1px solid var(--line);border-radius:999px;padding:8px 14px;flex:1 1 220px;min-width:180px}
+  .ppl-search input{background:transparent;border:none;outline:none;color:var(--txt);font-size:13.5px;font-family:var(--font);width:100%}
+  .ppl-chips{display:flex;gap:6px;flex-wrap:wrap}
+  .ppl-sort{background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:999px;padding:8px 12px;font-size:13px;font-family:var(--font);cursor:pointer}
+  @media(max-width:820px){.ppl-search{flex:1 1 100%}.ppl-sort{flex:1 1 100%}}
+</style>
 </head>
 <body>
 <div class="login-overlay" id="loginOverlay">
@@ -1293,6 +1303,7 @@
 <div class="bottombar" id="bottomBar"></div>
 <div class="fabwrap"><button class="fab" id="fabBtn" onclick="fabAction()">+</button></div>
 <div class="emoji-pop" id="emojiPop"></div>
+<input type="file" id="carPhotoInput" accept="image/*" style="display:none" onchange="onCarPhoto(this)">
 <div class="modal-overlay" id="rowModal" onclick="if(event.target===this)closeRowModal()">
   <div class="modal" role="dialog" aria-modal="true">
     <div class="modal-head"><h2 id="modalTitle">Adaugă tranzacție</h2><button class="x" onclick="closeRowModal()">✕</button></div>
@@ -1529,7 +1540,7 @@ function renderBudgetEditor(){const host=document.getElementById("budgetEditor")
 function budgetOverruns(){const spent=spentThisMonthByCat();const out=[];Object.keys(catBudgets).forEach(cat=>{const b=catBudgets[cat];const sp=spent[cat]||0;if(b&&sp>b)out.push({cat,spent:sp,budget:b,over:sp-b});});return out;}
 function renderBudgetAlerts(){const host=document.getElementById("budgetAlerts");if(!host)return;const ov=budgetOverruns();if(!ov.length){host.innerHTML="";return;}host.innerHTML=`<div style="background:color-mix(in srgb,var(--red) 12%,transparent);border:1px solid color-mix(in srgb,var(--red) 40%,var(--line));border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px"><b style="color:var(--red)">⚠️ Buget depășit luna aceasta:</b> `+ov.map(o=>`${esc(o.cat)} (<b>${fmtMoney(toDisplay(o.spent),false)}</b> / ${fmtMoney(toDisplay(o.budget),false)} ${settings.displayCurrency}, +${fmtMoney(toDisplay(o.over),false)})`).join(" &nbsp;•&nbsp; ")+`</div>`;}
 /* ============ MAȘINI ============ */
-function newCar(name){return {id:uid(),name:name||"Mașină",icon:"🚗",vin:"",plate:"",itp:"",rovinieta:"",rca:"",_seq:Date.now()};}
+function newCar(name){return {id:uid(),name:name||"Mașină",icon:"🚗",photo:"",vin:"",plate:"",itp:"",rovinieta:"",rca:"",_seq:Date.now()};}
 function addCar(){const inp=document.getElementById("newCarName");const name=(inp.value||"").trim()||("Mașină "+(cars.length+1));cars.unshift(newCar(name));inp.value="";markDirty();scheduleBackup();renderCars();toast("Mașină adăugată");}
 function updCar(id,field,val){const c=cars.find(x=>x.id===id);if(!c)return;c[field]=val;markDirty();scheduleBackup();renderCarsAlerts();if(field!=="name"&&field!=="vin"&&field!=="plate"){const badge=document.querySelector(`#carbadge-${id}-${field}`);if(badge){const info=carDeadlineInfo(val);if(info){const col=info.days<0?"var(--red)":(info.days<=14?"var(--red)":(info.days<=30?"var(--amber)":"var(--green)"));badge.style.color=col;badge.textContent=info.days<0?("expirat "+Math.abs(info.days)+"z"):(info.days+"z");}else{badge.textContent="—";badge.style.color="var(--muted)";}}}}
 function delCar(id,ev){if(ev)ev.stopPropagation();const c=cars.find(x=>x.id===id);if(!c)return;if(!confirm(`Ștergi mașina „${c.name}"?`))return;cars=cars.filter(x=>x.id!==id);markDirty();scheduleBackup();renderCars();toast("Mașină ștearsă");}
@@ -1543,7 +1554,7 @@ function renderCars(){renderCarsAlerts();const grid=document.getElementById("car
   grid.innerHTML=cars.map(c=>{const deadlines=CAR_DEADLINES.map(d=>carDateField(c,d)).join("");
     return `<div class="car-card">
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
-        <button class="car-icon-btn" onclick="openCarIcon(event,'${c.id}')" title="Alege marca / iconița" style="font-size:26px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;width:52px;height:52px;display:flex;align-items:center;justify-content:center;flex:0 0 auto;cursor:pointer">${c.icon||"🚗"}</button>
+        <div class="car-ava" style="position:relative;flex:0 0 auto"><button class="car-icon-btn" onclick="openCarIcon(event,'${c.id}')" title="Schimbă iconița" style="font-size:26px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;width:56px;height:56px;display:flex;align-items:center;justify-content:center;overflow:hidden;cursor:pointer;padding:0">${c.photo?`<img src="${c.photo}" alt="" style="width:100%;height:100%;object-fit:cover">`:(c.icon||"🚗")}</button><button onclick="triggerCarPhoto(event,'${c.id}')" title="Adaugă/schimbă poză" class="car-cam">📷</button>${c.photo?`<button onclick="clearCarPhoto(event,'${c.id}')" title="Elimină poza" class="car-rmphoto">✕</button>`:""}</div>
         <input value="${escAttr(c.name)}" onchange="updCar('${c.id}','name',this.value)" placeholder="Nume mașină" style="flex:1 1 160px;font-weight:700;font-size:17px;background:transparent;border:none;border-bottom:2px solid var(--line);color:var(--txt);padding:4px 2px;font-family:var(--font);min-width:140px">
         <button class="cat-del" onclick="delCar('${c.id}',event)">🗑</button>
       </div>
@@ -1555,6 +1566,10 @@ function renderCars(){renderCarsAlerts();const grid=document.getElementById("car
     </div>`;}).join("");}
 let carIconTarget=null;
 function openCarIcon(ev,id){ev.stopPropagation();carIconTarget=id;const pop=document.getElementById("emojiPop");pop.innerHTML=CAR_ICONS.map(e=>`<button onclick="pickCarIcon('${e}')">${e}</button>`).join("");const r=ev.currentTarget.getBoundingClientRect();pop.style.left=Math.min(r.left,window.innerWidth-360)+"px";pop.style.top=(r.bottom+6)+"px";pop.classList.add("open");}
+let carPhotoTarget=null;
+function triggerCarPhoto(ev,id){ev.stopPropagation();carPhotoTarget=id;const inp=document.getElementById("carPhotoInput");if(inp){inp.value="";inp.click();}}
+function onCarPhoto(input){const f=input.files&&input.files[0];if(!f||!carPhotoTarget){return;}const rd=new FileReader();rd.onload=e=>{const img=new Image();img.onload=function(){const max=240;const sc=Math.min(max/img.width,max/img.height,1);const cw=Math.round(img.width*sc),ch=Math.round(img.height*sc);const cv=document.createElement("canvas");cv.width=cw;cv.height=ch;cv.getContext("2d").drawImage(img,0,0,cw,ch);const data=cv.toDataURL("image/jpeg",0.75);const c=cars.find(x=>x.id===carPhotoTarget);if(c){c.photo=data;markDirty();scheduleBackup();renderCars();}carPhotoTarget=null;};img.src=e.target.result;};rd.readAsDataURL(f);input.value="";}
+function clearCarPhoto(ev,id){ev.stopPropagation();const c=cars.find(x=>x.id===id);if(c){c.photo="";markDirty();scheduleBackup();renderCars();}}
 function pickCarIcon(e){if(carIconTarget){const c=cars.find(x=>x.id===carIconTarget);if(c){c.icon=e;markDirty();scheduleBackup();renderCars();}}carIconTarget=null;document.getElementById("emojiPop").classList.remove("open");}
 /* ============ RECURENTE ============ */
 function recTypes(){const s=new Set();Object.values(CATEGORIES).forEach(a=>a.forEach(t=>{if(recurrent(t)==="Y")s.add(t);}));rows.forEach(r=>{if(recurrent(r.Type)==="Y")s.add(r.Type);});return [...s].sort((a,b)=>a.localeCompare(b,"ro"));}
@@ -1965,7 +1980,7 @@ async function integrityCheck(){
    - cars/lists/list_items/app_config: neschimbate (aveau deja coloane reale).
    =================================================================== */
 const cloud={cfg:null,client:null,session:null};
-const dl={ready:false,shadow:{},loading:false,saving:false,pending:false,saveT:null,loadedForUser:null,loggingIn:false,hasTagsColumn:false,hasPeopleTable:false};
+const dl={ready:false,shadow:{},loading:false,saving:false,pending:false,saveT:null,loadedForUser:null,loggingIn:false,hasTagsColumn:false,hasPeopleTable:false,hasCarPhotoColumn:false};
 
 function canon(v){if(v===null||typeof v!=="object")return JSON.stringify(v);if(Array.isArray(v))return "["+v.map(canon).join(",")+"]";return "{"+Object.keys(v).sort().map(k=>JSON.stringify(k)+":"+canon(v[k])).join(",")+"}";}
 
@@ -2044,7 +2059,7 @@ function dlSnapshot(){
   const m={};
   /* TRANZACȚII pe COLOANE REALE (nu blob) */
   rows.forEach(r=>{if(!r.id)r.id=uid();const trow={data:toISO(r.Data)||null,status:r.Status||null,categ:r.Categ||null,type:r.Type||null,amount:txAmountNum(r.Amount),info:(r.Info||null),asset:!!r.Asset,disposable:!!r.Disposable,spike:!!r.Spike,seq:(r._seq==null?null:r._seq)};if(dl.hasTagsColumn)trow.tags=normTags(r.Tags)||null;m["transactions:"+r.id]={table:"transactions",id:r.id,row:trow};});
-  cars.forEach(c=>{if(!c.id)c.id=uid();const dOrNull=v=>{const iso=toISO(v);return iso?iso:null;};m["cars:"+c.id]={table:"cars",id:c.id,row:{name:c.name||null,icon:c.icon||null,vin:c.vin||null,plate:c.plate||null,itp:dOrNull(c.itp),rovinieta:dOrNull(c.rovinieta),rca:dOrNull(c.rca),seq:c._seq}};});
+  cars.forEach(c=>{if(!c.id)c.id=uid();const dOrNull=v=>{const iso=toISO(v);return iso?iso:null;};const crow={name:c.name||null,icon:c.icon||null,vin:c.vin||null,plate:c.plate||null,itp:dOrNull(c.itp),rovinieta:dOrNull(c.rovinieta),rca:dOrNull(c.rca),seq:c._seq};if(dl.hasCarPhotoColumn)crow.photo=c.photo||null;m["cars:"+c.id]={table:"cars",id:c.id,row:crow};});
   if(dl.hasPeopleTable){people.forEach(p=>{if(!p.id)p.id=uid();const dON=v=>{const iso=toISO(v);return iso?iso:null;};m["people:"+p.id]={table:"people",id:p.id,row:{name:p.name||null,relation:p.relation||null,birthday:dON(p.birthday),children:p.children||null,spouse:p.spouse||null,hobbies:p.hobbies||null,last_contact:dON(p.lastContact),photo:p.photo||null,notes:p.notes||null,seq:p._seq}};});}
   shoppingLists.forEach(l=>{if(!l.id)l.id=uid();m["lists:"+l.id]={table:"lists",id:l.id,row:{name:l.name||null,icon:l.icon||null,created:toTs(l.created)}};(l.items||[]).forEach(it=>{if(!it.id)it.id=uid();m["list_items:"+it.id]={table:"list_items",id:it.id,row:{list_id:l.id,text:it.text||null,qty:(it.qty==null?null:String(it.qty)),done:!!it.done,done_at:toTs(it.doneAt),created:toTs(it.created)}};});});
   m["app_config:main"]={table:"app_config",id:"main",row:{categories:CATEGORIES,settings:{baseCurrency:settings.baseCurrency,displayCurrency:settings.displayCurrency,rate:settings.rate,rateDate:settings.rateDate,rateSource:settings.rateSource},cat_budgets:catBudgets,rec_status:recStatus,backups:backups}};
@@ -2073,6 +2088,7 @@ async function dlInitialLoad(force){
     console.log("[load] start pentru user",uidv);
     try{const _p=await cloud.client.from("transactions").select("tags").limit(1);dl.hasTagsColumn=!_p.error;}catch(_e){dl.hasTagsColumn=false;}
     try{const _pp=await cloud.client.from("people").select("id").limit(1);dl.hasPeopleTable=!_pp.error;}catch(_e){dl.hasPeopleTable=false;}
+    try{const _cp=await cloud.client.from("cars").select("photo").limit(1);dl.hasCarPhotoColumn=!_cp.error;}catch(_e){dl.hasCarPhotoColumn=false;}
     console.log("[load] coloana tags:",dl.hasTagsColumn);
     const tx=await dlLoadAll("transactions","*");
     const cr=await dlLoadAll("cars","*");
@@ -2085,7 +2101,7 @@ async function dlInitialLoad(force){
     rows=(tx||[]).map(r=>{const o={id:r.id,Data:toISO(r.data),Status:r.status||"",Categ:r.categ||"",Type:r.type||"",Amount:(r.amount==null?"":String(r.amount)),Info:r.info||"",Tags:(r.tags||""),Asset:!!r.asset,Disposable:!!r.disposable,Spike:!!r.spike,_seq:(r.seq==null?0:r.seq)};o["+/-"]=plusMinus(o.Amount);o.Reccurent=recurrent(o.Type);return o;});
     const serverCount=rows.length;
     if(!rows.length)rows=[newRow()];
-    cars=(cr||[]).map(r=>({id:r.id,name:r.name,icon:r.icon,vin:r.vin,plate:r.plate,itp:r.itp,rovinieta:r.rovinieta,rca:r.rca,_seq:r.seq}));
+    cars=(cr||[]).map(r=>({id:r.id,name:r.name,icon:r.icon,photo:r.photo||"",vin:r.vin,plate:r.plate,itp:r.itp,rovinieta:r.rovinieta,rca:r.rca,_seq:r.seq}));
     let peData=[]; if(dl.hasPeopleTable){ try{ peData=await dlLoadAll("people","*"); }catch(e){ dl.hasPeopleTable=false; console.warn("people load:",e); } }
     people=(peData||[]).map(r=>({id:r.id,name:r.name||"",relation:r.relation||"prieteni",birthday:r.birthday||"",children:r.children||"",spouse:r.spouse||"",hobbies:r.hobbies||"",lastContact:r.last_contact||"",photo:r.photo||"",notes:r.notes||"",_seq:r.seq}));
     const lmap={};(ls||[]).forEach(r=>{lmap[r.id]={id:r.id,name:r.name,icon:r.icon,created:fromTs(r.created),items:[]};});
@@ -2448,6 +2464,11 @@ load();
       + '</div>'
       + '<div id="peopleSyncNote"></div>'
       + '<div id="peopleAlerts"></div>'
+      + '<div class="people-tools" id="peopleTools">'
+      +   '<div class="ppl-search">🔎<input id="pplSearch" placeholder="Caută nume, hobby, note..." oninput="onPeopleSearch(this.value)"></div>'
+      +   '<div class="ppl-chips" id="pplRelChips"></div>'
+      +   '<select id="pplSort" class="ppl-sort" onchange="setPeopleSort(this.value)"><option value="bday">🎂 Zi naștere apropiată</option><option value="name">🔤 Nume (A-Z)</option><option value="age_desc">↓ Vârstă (mari întâi)</option><option value="age_asc">↑ Vârstă (mici întâi)</option><option value="contact">📞 Contact (demult întâi)</option><option value="month">📅 Luna nașterii</option></select>'
+      + '</div>'
       + '<div class="people-grid" id="peopleGrid"></div>';
     wrap.appendChild(sec);
 
@@ -2500,9 +2521,11 @@ load();
   }
 
   window.renderPeople=function(){
-    injectPage(); syncNote(); window.renderPeopleAlerts();
+    injectPage(); syncNote(); if(window.renderPeopleTools)window.renderPeopleTools(); window.renderPeopleAlerts();
     var grid=$("peopleGrid"); if(!grid)return;
-    var ppl=(window.people||[]).slice().sort(function(a,b){ var da=daysUntilBday(a.birthday), db=daysUntilBday(b.birthday); if(da==null)da=999; if(db==null)db=999; if(da!==db)return da-db; return String(a.name||"").localeCompare(String(b.name||""),"ro"); });
+    var _q=(window.peopleQuery||"").toLowerCase(),_rel=window.peopleRelFilter||"",_sm=window.peopleSort||"bday";
+    var ppl=(window.people||[]).slice().filter(function(p){ if(_rel&&(p.relation||"")!==_rel)return false; if(_q){var hay=[p.name,p.spouse,p.children,p.hobbies,p.notes,p.relation].map(function(x){return String(x||"").toLowerCase();}).join(" ");if(hay.indexOf(_q)<0)return false;} return true; });
+    ppl.sort(function(a,b){ if(_sm==="name")return String(a.name||"").localeCompare(String(b.name||""),"ro",{sensitivity:"base"}); if(_sm==="age_desc"){var xa=calcAge(a.birthday),xb=calcAge(b.birthday);return (xb==null?-1:xb)-(xa==null?-1:xa);} if(_sm==="age_asc"){var ya=calcAge(a.birthday),yb=calcAge(b.birthday);return (ya==null?9999:ya)-(yb==null?9999:yb);} if(_sm==="contact"){var ca=daysSince(a.lastContact),cb=daysSince(b.lastContact);return (cb==null?-1:cb)-(ca==null?-1:ca);} if(_sm==="month"){var ma=a.birthday?new Date(a.birthday).getMonth():99,mb=b.birthday?new Date(b.birthday).getMonth():99;if(ma!==mb)return ma-mb;var dA=a.birthday?new Date(a.birthday).getDate():99,dB=b.birthday?new Date(b.birthday).getDate():99;return dA-dB;} var da=daysUntilBday(a.birthday),db=daysUntilBday(b.birthday);if(da==null)da=999;if(db==null)db=999;if(da!==db)return da-db;return String(a.name||"").localeCompare(String(b.name||""),"ro"); });
     if(!ppl.length){ grid.innerHTML='<div class="empty" style="grid-column:1/-1">Nicio persoană încă. Adaugă prima persoană mai sus. 👥</div>'; return; }
     grid.innerHTML=ppl.map(function(p){
       var idx=window.people.indexOf(p);
@@ -2568,6 +2591,21 @@ load();
   else setTimeout(init,80);
 })();
 
+</script>
+<script>
+(function(){
+  window.peopleRelFilter=""; window.peopleQuery=""; window.peopleSort="bday";
+  var RELS=[["","Toate"],["familie","👨‍👩‍👧 Familie"],["prieteni","🧑‍🤝‍🧑 Prieteni"],["colegi","💼 Colegi"],["altele","✨ Altele"]];
+  window.onPeopleSearch=function(v){ window.peopleQuery=v||""; if(window.renderPeople)window.renderPeople(); };
+  window.setPeopleRel=function(r){ window.peopleRelFilter=r; if(window.renderPeople)window.renderPeople(); };
+  window.setPeopleSort=function(v){ window.peopleSort=v; if(window.renderPeople)window.renderPeople(); };
+  window.renderPeopleTools=function(){
+    var chips=document.getElementById("pplRelChips");
+    if(chips)chips.innerHTML=RELS.map(function(r){return '<button class="fchip'+(window.peopleRelFilter===r[0]?" sel":"")+'" onclick="setPeopleRel(\''+r[0]+'\')">'+r[1]+'</button>';}).join("");
+    var srt=document.getElementById("pplSort"); if(srt&&srt.value!==window.peopleSort)srt.value=window.peopleSort;
+    var se=document.getElementById("pplSearch"); if(se&&se.value!==window.peopleQuery)se.value=window.peopleQuery;
+  };
+})();
 </script>
 </body>
 </html>
