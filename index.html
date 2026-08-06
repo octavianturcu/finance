@@ -999,6 +999,45 @@
   }
 
 </style>
+<style id="people-css">
+
+  /* ══ PEOPLE — pagina Persoane ══ */
+  .people-grid{ display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px; }
+  .person-card{ background:var(--panel);border:.5px solid var(--line);border-radius:16px;padding:16px;cursor:pointer;box-shadow:var(--shadow,0 10px 30px -16px rgba(0,0,0,.4));transition:transform .16s var(--spring),box-shadow .18s,border-color .16s;position:relative;overflow:hidden; }
+  .person-card:hover{ transform:translateY(-3px);box-shadow:var(--e-float,0 22px 50px -18px rgba(0,0,0,.5)); }
+  .person-card.isbday{ border-color:var(--green); box-shadow:0 0 0 2px color-mix(in srgb,var(--green) 45%,transparent),0 14px 34px -16px color-mix(in srgb,var(--green) 50%,transparent); }
+  .person-card.isbday::before{ content:"🎉";position:absolute;top:-6px;right:8px;font-size:34px;opacity:.18;transform:rotate(12deg); }
+  .pc-top{ display:flex;align-items:center;gap:12px;margin-bottom:10px; }
+  .pc-avatar{ width:54px;height:54px;flex:0 0 auto;border-radius:16px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:19px;color:#fff;background:var(--grad,linear-gradient(135deg,var(--accent),var(--accent2))); }
+  .pc-avatar img{ width:100%;height:100%;object-fit:cover; }
+  .pc-id{ min-width:0;flex:1; }
+  .pc-name{ font-weight:800;font-size:15.5px;letter-spacing:-.01em;display:flex;align-items:center;gap:6px;flex-wrap:wrap; }
+  .pc-rel{ font-size:12px;color:var(--muted);margin-top:2px; }
+  .pb-badge{ font-size:10.5px;font-weight:800;padding:2px 8px;border-radius:999px;white-space:nowrap; }
+  .pb-badge.today{ background:color-mix(in srgb,var(--green) 18%,transparent);color:var(--green); }
+  .pb-badge.soon{ background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent); }
+  .pc-meta{ display:flex;flex-direction:column;gap:5px;font-size:12.5px;color:var(--txt); }
+  .pc-meta span{ color:var(--muted); }
+  .pc-notes{ margin-top:9px;font-size:12.5px;color:var(--muted);font-style:italic;border-top:1px solid var(--line);padding-top:8px; }
+
+  /* modal poză */
+  .person-photo-row{ display:flex;align-items:center;gap:16px;margin-bottom:16px; }
+  .pp-avatar{ width:84px;height:84px;flex:0 0 auto;border-radius:22px;overflow:hidden;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:28px;color:#fff;background:var(--grad,linear-gradient(135deg,var(--accent),var(--accent2)));box-shadow:0 10px 26px -12px color-mix(in srgb,var(--accent) 70%,transparent); }
+  .pp-avatar img{ width:100%;height:100%;object-fit:cover; }
+  .pp-photo-actions{ display:flex;flex-direction:column;gap:8px; }
+  .pp-photo-btn{ display:inline-flex;align-items:center;gap:6px;padding:10px 16px;border-radius:12px;background:var(--panel2);border:.5px solid var(--line);cursor:pointer;font-weight:600;font-size:13.5px;color:var(--txt);transition:border-color .15s,color .15s; }
+  .pp-photo-btn:hover{ border-color:color-mix(in srgb,var(--accent) 50%,var(--line));color:var(--accent); }
+  .pp-photo-rm{ background:none;border:none;color:var(--red);cursor:pointer;font-size:12.5px;font-weight:600;text-align:left;padding:2px 4px; }
+  .person-derived{ display:flex;gap:8px;flex-wrap:wrap; }
+  .pd-chip{ display:inline-flex;align-items:center;gap:5px;padding:6px 12px;border-radius:999px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);font-weight:700;font-size:12.5px; }
+  .mform textarea{ background:var(--panel2);color:var(--txt);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:15px;font-family:var(--font);width:100%;box-sizing:border-box;resize:vertical; }
+
+  @media (max-width:820px){
+    .people-grid{ grid-template-columns:1fr; }
+    #tabPeople{ } /* apare în nav lateral pe desktop; pe mobil accesibil din Acasă */
+  }
+
+</style>
 </head>
 <body>
 <div class="login-overlay" id="loginOverlay">
@@ -1310,6 +1349,7 @@ let settings={baseCurrency:"RON",displayCurrency:"RON",rate:5.07,rateDate:null,r
 let rows=[],filtered=[],page=0,pageSize=10,dirty=false,seqCounter=1,sortState={col:"",dir:0},currentPage="table";
 let shoppingLists=[],currentListId=null,listSort="seq";
 let cars=[],catBudgets={},recStatus={},backups=[];
+var people=[];
 let recSelectedYears=null;
 function isMobile(){return window.matchMedia("(max-width:820px)").matches;}
 function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
@@ -1564,13 +1604,13 @@ function downloadBackup(id){const b=backups.find(x=>x.id===id);if(!b)return;cons
 /* ============ EXPORT / IMPORT ============ */
 function download(name,text,type){const b=new Blob([text],{type});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
 function stamp(){return new Date().toISOString().slice(0,10);}
-function fullExportObject(){return {app:"BudgetTracker",version:3,exportedAt:new Date().toISOString(),rows,shoppingLists,cars,catBudgets,recStatus,backups,categories:CATEGORIES,settings};}
+function fullExportObject(){return {app:"BudgetTracker",version:3,exportedAt:new Date().toISOString(),rows,shoppingLists,cars,catBudgets,recStatus,backups,people,categories:CATEGORIES,settings};}
 function exportJSON(){download("budget_complet_"+stamp()+".json",JSON.stringify(fullExportObject(),null,2),"application/json");toast("⬇️ Export complet (toate datele)");}
 function exportAll(){exportJSON();}
 function csvCell(v){let s=(v==null)?"":String(v);if(typeof v==="boolean")s=v?"true":"false";if(/[",\n;]/.test(s))s='"'+s.replace(/"/g,'""')+'"';return s;}
 function exportCSV(){const h=COLS.join(",");const lines=rows.map(r=>{r["+/-"]=plusMinus(r.Amount);r.Reccurent=recurrent(r.Type);return COLS.map(c=>c==="Data"?csvCell(isoToDMY(toISO(r.Data))):csvCell(r[c])).join(",");});download("budget_"+stamp()+".csv",h+"\n"+lines.join("\n"),"text/csv");}
 function exportCarsCSV(){const cols=["Nume","Icon","VIN","Nr inmatriculare","ITP","Rovinieta","RCA"];const lines=cars.map(c=>[c.name,c.icon,c.vin,c.plate,isoToDMY(toISO(c.itp)),isoToDMY(toISO(c.rovinieta)),isoToDMY(toISO(c.rca))].map(csvCell).join(","));download("masini_"+stamp()+".csv",cols.join(",")+"\n"+lines.join("\n"),"text/csv");toast("⬇️ Mașini exportate (CSV)");}
-function importJSON(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{try{const d=JSON.parse(e.target.result);if(Array.isArray(d)){rows=d.map(normalize);}else{if(Array.isArray(d.rows))rows=d.rows.map(normalize);if(Array.isArray(d.shoppingLists))shoppingLists=d.shoppingLists;if(Array.isArray(d.cars))cars=d.cars;if(d.catBudgets)catBudgets=d.catBudgets;if(d.recStatus)recStatus=d.recStatus;if(Array.isArray(d.backups))backups=d.backups;if(d.categories)CATEGORIES=d.categories;if(d.settings)settings=Object.assign(settings,d.settings);}ensureSeq();page=0;applyCurrencyUI();buildFilterOptions();render();if(currentPage==="lists")renderLists();markDirty();scheduleBackup();toast("⬆️ Import complet reușit");}catch(err){alert("JSON invalid: "+err);}input.value="";};rd.readAsText(f);}
+function importJSON(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{try{const d=JSON.parse(e.target.result);if(Array.isArray(d)){rows=d.map(normalize);}else{if(Array.isArray(d.rows))rows=d.rows.map(normalize);if(Array.isArray(d.shoppingLists))shoppingLists=d.shoppingLists;if(Array.isArray(d.cars))cars=d.cars;if(d.catBudgets)catBudgets=d.catBudgets;if(d.recStatus)recStatus=d.recStatus;if(Array.isArray(d.backups))backups=d.backups;if(Array.isArray(d.people))people=d.people;if(d.categories)CATEGORIES=d.categories;if(d.settings)settings=Object.assign(settings,d.settings);}ensureSeq();page=0;applyCurrencyUI();buildFilterOptions();render();if(currentPage==="lists")renderLists();markDirty();scheduleBackup();toast("⬆️ Import complet reușit");}catch(err){alert("JSON invalid: "+err);}input.value="";};rd.readAsText(f);}
 function importCSV(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{try{const parsed=parseCSV(e.target.result).map(normalize);rows=rows.concat(parsed);ensureSeq();page=0;buildFilterOptions();render();markDirty();dlFlush();toast(`⬆️ ${parsed.length} rânduri importate (adăugate la cele existente). Se salvează în cloud...`);}catch(err){alert("CSV invalid: "+err);}input.value="";};rd.readAsText(f);}
 function normalize(o){const r=newRow();COLS.forEach(c=>{if(o[c]!==undefined)r[c]=o[c];});if(o.id)r.id=o.id;r.Data=toISO(r.Data);["Asset","Disposable","Spike"].forEach(c=>{const s=String(r[c]).toLowerCase();r[c]=(r[c]===true||s==="true"||s==="1"||s==="yes"||s==="da"||s==="x");});r["+/-"]=plusMinus(r.Amount);r.Reccurent=recurrent(r.Type);return r;}
 function parseCSV(text){const out=[];let field="",row=[],inq=false;text=text.replace(/\r\n/g,"\n").replace(/\r/g,"\n");const firstLine=text.split("\n")[0]||"";const delim=(firstLine.split(";").length>firstLine.split(",").length)?";":",";for(let i=0;i<text.length;i++){const ch=text[i];if(inq){if(ch==='"'){if(text[i+1]==='"'){field+='"';i++;}else inq=false;}else field+=ch;}else{if(ch==='"')inq=true;else if(ch===delim){row.push(field);field="";}else if(ch==="\n"){row.push(field);out.push(row);row=[];field="";}else field+=ch;}}if(field!==""||row.length){row.push(field);out.push(row);}if(!out.length)return[];const header=out.shift().map(h=>h.trim());return out.filter(r=>r.some(c=>c!=="")).map(r=>{const o={};header.forEach((h,idx)=>o[h]=r[idx]!==undefined?r[idx].trim():"");return o;});}
@@ -1925,7 +1965,7 @@ async function integrityCheck(){
    - cars/lists/list_items/app_config: neschimbate (aveau deja coloane reale).
    =================================================================== */
 const cloud={cfg:null,client:null,session:null};
-const dl={ready:false,shadow:{},loading:false,saving:false,pending:false,saveT:null,loadedForUser:null,loggingIn:false,hasTagsColumn:false};
+const dl={ready:false,shadow:{},loading:false,saving:false,pending:false,saveT:null,loadedForUser:null,loggingIn:false,hasTagsColumn:false,hasPeopleTable:false};
 
 function canon(v){if(v===null||typeof v!=="object")return JSON.stringify(v);if(Array.isArray(v))return "["+v.map(canon).join(",")+"]";return "{"+Object.keys(v).sort().map(k=>JSON.stringify(k)+":"+canon(v[k])).join(",")+"}";}
 
@@ -2005,6 +2045,7 @@ function dlSnapshot(){
   /* TRANZACȚII pe COLOANE REALE (nu blob) */
   rows.forEach(r=>{if(!r.id)r.id=uid();const trow={data:toISO(r.Data)||null,status:r.Status||null,categ:r.Categ||null,type:r.Type||null,amount:txAmountNum(r.Amount),info:(r.Info||null),asset:!!r.Asset,disposable:!!r.Disposable,spike:!!r.Spike,seq:(r._seq==null?null:r._seq)};if(dl.hasTagsColumn)trow.tags=normTags(r.Tags)||null;m["transactions:"+r.id]={table:"transactions",id:r.id,row:trow};});
   cars.forEach(c=>{if(!c.id)c.id=uid();const dOrNull=v=>{const iso=toISO(v);return iso?iso:null;};m["cars:"+c.id]={table:"cars",id:c.id,row:{name:c.name||null,icon:c.icon||null,vin:c.vin||null,plate:c.plate||null,itp:dOrNull(c.itp),rovinieta:dOrNull(c.rovinieta),rca:dOrNull(c.rca),seq:c._seq}};});
+  if(dl.hasPeopleTable){people.forEach(p=>{if(!p.id)p.id=uid();const dON=v=>{const iso=toISO(v);return iso?iso:null;};m["people:"+p.id]={table:"people",id:p.id,row:{name:p.name||null,relation:p.relation||null,birthday:dON(p.birthday),children:p.children||null,spouse:p.spouse||null,hobbies:p.hobbies||null,last_contact:dON(p.lastContact),photo:p.photo||null,notes:p.notes||null,seq:p._seq}};});}
   shoppingLists.forEach(l=>{if(!l.id)l.id=uid();m["lists:"+l.id]={table:"lists",id:l.id,row:{name:l.name||null,icon:l.icon||null,created:toTs(l.created)}};(l.items||[]).forEach(it=>{if(!it.id)it.id=uid();m["list_items:"+it.id]={table:"list_items",id:it.id,row:{list_id:l.id,text:it.text||null,qty:(it.qty==null?null:String(it.qty)),done:!!it.done,done_at:toTs(it.doneAt),created:toTs(it.created)}};});});
   m["app_config:main"]={table:"app_config",id:"main",row:{categories:CATEGORIES,settings:{baseCurrency:settings.baseCurrency,displayCurrency:settings.displayCurrency,rate:settings.rate,rateDate:settings.rateDate,rateSource:settings.rateSource},cat_budgets:catBudgets,rec_status:recStatus,backups:backups}};
   return m;
@@ -2031,6 +2072,7 @@ async function dlInitialLoad(force){
     const uidv=cloud.session.user.id;
     console.log("[load] start pentru user",uidv);
     try{const _p=await cloud.client.from("transactions").select("tags").limit(1);dl.hasTagsColumn=!_p.error;}catch(_e){dl.hasTagsColumn=false;}
+    try{const _pp=await cloud.client.from("people").select("id").limit(1);dl.hasPeopleTable=!_pp.error;}catch(_e){dl.hasPeopleTable=false;}
     console.log("[load] coloana tags:",dl.hasTagsColumn);
     const tx=await dlLoadAll("transactions","*");
     const cr=await dlLoadAll("cars","*");
@@ -2044,6 +2086,8 @@ async function dlInitialLoad(force){
     const serverCount=rows.length;
     if(!rows.length)rows=[newRow()];
     cars=(cr||[]).map(r=>({id:r.id,name:r.name,icon:r.icon,vin:r.vin,plate:r.plate,itp:r.itp,rovinieta:r.rovinieta,rca:r.rca,_seq:r.seq}));
+    let peData=[]; if(dl.hasPeopleTable){ try{ peData=await dlLoadAll("people","*"); }catch(e){ dl.hasPeopleTable=false; console.warn("people load:",e); } }
+    people=(peData||[]).map(r=>({id:r.id,name:r.name||"",relation:r.relation||"prieteni",birthday:r.birthday||"",children:r.children||"",spouse:r.spouse||"",hobbies:r.hobbies||"",lastContact:r.last_contact||"",photo:r.photo||"",notes:r.notes||"",_seq:r.seq}));
     const lmap={};(ls||[]).forEach(r=>{lmap[r.id]={id:r.id,name:r.name,icon:r.icon,created:fromTs(r.created),items:[]};});
     (li||[]).forEach(r=>{const L=lmap[r.list_id];const it={id:r.id,text:r.text,qty:r.qty,done:r.done,doneAt:(r.done_at?fromTs(r.done_at):null),created:fromTs(r.created)};if(L)L.items.push(it);});
     shoppingLists=Object.values(lmap);
@@ -2257,8 +2301,11 @@ load();
       + '</div>'
       + '<div class="htile"><h3>⚡ Scurtături</h3><div class="home-scuts">'
       +   sc("table","📋","Tranzacții")+sc("charts","📊","Grafice")+sc("report","📅","Raport")+sc("recurring","🔁","Recurente")
-      +   sc("lists","🛒","Liste")+sc("cars","🚗","Mașini")+sc("sankey","🔀","Sankey")+sc("settings","⚙️","Setări")
+      +   sc("lists","🛒","Liste")+sc("cars","🚗","Mașini")+sc("people","👥","Persoane")+sc("sankey","🔀","Sankey")+sc("settings","⚙️","Setări")
       + '</div></div>'
+      + '<div class="htile"><h3>🎂 Zile de naștere <span class="h3-act" onclick="showPage(\'people\')">Persoane ›</span></h3>'
+      +   (function(){var ba=(typeof collectBirthdayAlerts==="function")?collectBirthdayAlerts():[];return ba.length?ba.map(function(a){var col=a.days===0?"var(--green)":"var(--accent)";var t=a.days===0?"🎉 astăzi!":(a.days===1?"mâine":("în "+a.days+"z"));return '<div class="car-al"><span>🎂 <b>'+esc(a.name)+'</b></span><span style="flex:1"></span><span class="pin" style="color:'+col+';background:color-mix(in srgb,'+col+' 16%,transparent)">'+t+'</span></div>';}).join(""):'<div class="empty-mini">Nicio zi de naștere în 7 zile. 🎈</div>';})()
+      + '</div>'
       + '<div class="htile"><h3>🔔 Scadențe auto <span class="h3-act" onclick="showPage(\'cars\')">Mașini ›</span></h3>'
       +   (alerts.length?alerts.map(function(al){var col=(al.cls==="expired"||al.cls==="soon")?"var(--red)":"var(--amber)";var t=al.days<0?("expirat "+Math.abs(al.days)+"z"):(al.days===0?"azi":al.days+"z");return '<div class="car-al"><span>🚗 <b>'+esc(al.car)+'</b> · '+al.label+'</span><span style="flex:1"></span><span class="pin" style="color:'+col+';background:color-mix(in srgb,'+col+' 16%,transparent)">'+t+'</span></div>';}).join(""):'<div class="empty-mini">Nicio scadență în 30 de zile. 🎉</div>')
       + '</div>'
@@ -2359,6 +2406,166 @@ load();
   }
   if(document.readyState==="loading"){ document.addEventListener("DOMContentLoaded",function(){ setTimeout(build,60); }); }
   else { setTimeout(build,60); }
+})();
+
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   👥 PEOPLE — agendă persoane cu remindere de zile de naștere.
+   Se sincronizează prin tabela „people" (motor existent, generic).
+   Câmpuri calculate (nu stocate): vârstă, zodie, luna nașterii,
+   zile de la ultimul contact, zile până la ziua de naștere.
+   ══════════════════════════════════════════════════════════════════ */
+(function(){
+  "use strict";
+  function $(id){ return document.getElementById(id); }
+  function esc2(v){ return (v==null?"":String(v)).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+
+  var RELATIONS=[["familie","👨‍👩‍👧 Familie"],["prieteni","🧑‍🤝‍🧑 Prieteni"],["colegi","💼 Colegi"],["altele","✨ Altele"]];
+  var MONTHS_RO=["ianuarie","februarie","martie","aprilie","mai","iunie","iulie","august","septembrie","octombrie","noiembrie","decembrie"];
+
+  function calcAge(iso){ if(!iso)return null; var b=new Date(iso); if(isNaN(b))return null; var n=new Date(); var a=n.getFullYear()-b.getFullYear(); var m=n.getMonth()-b.getMonth(); if(m<0||(m===0&&n.getDate()<b.getDate()))a--; return a; }
+  function zodiac(iso){ if(!iso)return null; var d=new Date(iso); if(isNaN(d))return null; var day=d.getDate(),mo=d.getMonth()+1;
+    var Z=[["Capricorn","♑",1,20],["Vărsător","♒",2,19],["Pești","♓",3,21],["Berbec","♈",4,20],["Taur","♉",5,21],["Gemeni","♊",6,21],["Rac","♋",7,23],["Leu","♌",8,23],["Fecioară","♍",9,23],["Balanță","♎",10,23],["Scorpion","♏",11,22],["Săgetător","♐",12,22],["Capricorn","♑",13,32]];
+    for(var i=0;i<12;i++){ if(mo===Z[i][2]&&day<Z[i][3])return {name:Z[i][0],sym:Z[i][1]}; if(mo===Z[i][2]&&day>=Z[i][3])return {name:Z[i+1][0],sym:Z[i+1][1]}; }
+    return null; }
+  function daysSince(iso){ if(!iso)return null; var d=new Date(iso); if(isNaN(d))return null; var t=new Date(); d.setHours(0,0,0,0); t.setHours(0,0,0,0); return Math.round((t-d)/86400000); }
+  function daysUntilBday(iso){ if(!iso)return null; var b=new Date(iso); if(isNaN(b))return null; var t=new Date(); t.setHours(0,0,0,0); var n=new Date(t.getFullYear(),b.getMonth(),b.getDate()); if(n<t)n=new Date(t.getFullYear()+1,b.getMonth(),b.getDate()); return Math.round((n-t)/86400000); }
+  function relLabel(r){ for(var i=0;i<RELATIONS.length;i++)if(RELATIONS[i][0]===r)return RELATIONS[i][1]; return "✨ Altele"; }
+  function initials(name){ var p=String(name||"?").trim().split(/\s+/); return ((p[0]||"?")[0]+(p[1]?p[1][0]:"")).toUpperCase(); }
+
+  /* ---- birthday alerts (pentru Home + pagina) ---- */
+  window.collectBirthdayAlerts=function(){ var out=[]; (window.people||[]).forEach(function(p){ if(!p.birthday)return; var du=daysUntilBday(p.birthday); if(du!=null&&du<=7){ out.push({name:p.name||"(fără nume)",days:du,age:calcAge(p.birthday),zod:zodiac(p.birthday)}); } }); out.sort(function(a,b){return a.days-b.days;}); return out; };
+
+  /* ---- inject page + modal ---- */
+  function injectPage(){
+    if($("pagePeople"))return;
+    var wrap=document.querySelector(".wrap"); if(!wrap)return;
+    var sec=document.createElement("section"); sec.className="page"; sec.id="pagePeople";
+    sec.innerHTML=''
+      + '<div class="lists-head"><h2>👥 Persoane</h2>'
+      +   '<div class="newlist-row" style="margin:0"><input id="newPersonName" placeholder="Nume persoană..." onkeydown="if(event.key===\'Enter\')addPerson()"><button class="primary" onclick="addPerson()">＋ Adaugă</button></div>'
+      + '</div>'
+      + '<div id="peopleSyncNote"></div>'
+      + '<div id="peopleAlerts"></div>'
+      + '<div class="people-grid" id="peopleGrid"></div>';
+    wrap.appendChild(sec);
+
+    if(!$("personModal")){
+      var m=document.createElement("div");
+      m.className="modal-overlay"; m.id="personModal";
+      m.setAttribute("onclick","if(event.target===this)closePersonModal()");
+      m.innerHTML=''
+        + '<div class="modal">'
+        +   '<div class="modal-head"><h2 id="personModalTitle">Persoană</h2><button class="x" onclick="closePersonModal()">✕</button></div>'
+        +   '<div class="modal-body">'
+        +     '<div class="person-photo-row">'
+        +       '<div class="pp-avatar" id="ppAvatar"></div>'
+        +       '<div class="pp-photo-actions"><label class="pp-photo-btn">📷 Alege poză<input type="file" id="pPhotoInput" accept="image/*" onchange="onPersonPhoto(this)" hidden></label><button type="button" class="pp-photo-rm" id="pPhotoRm" onclick="clearPersonPhoto()" style="display:none">🗑 Elimină</button></div>'
+        +     '</div>'
+        +     '<div class="mform">'
+        +       '<div class="mfld full"><label>Nume</label><input id="pName" placeholder="Nume complet"></div>'
+        +       '<div class="mfld"><label>Relație</label><select id="pRelation">'+RELATIONS.map(function(r){return '<option value="'+r[0]+'">'+r[1]+'</option>';}).join("")+'</select></div>'
+        +       '<div class="mfld"><label>Data nașterii</label><input type="date" id="pBirthday" onchange="updatePersonDerived()"></div>'
+        +       '<div class="mfld full"><div class="person-derived" id="pDerived"></div></div>'
+        +       '<div class="mfld"><label>Soț / Soție</label><input id="pSpouse" placeholder="Nume"></div>'
+        +       '<div class="mfld"><label>Copii</label><input id="pChildren" placeholder="ex: Maria, Andrei"></div>'
+        +       '<div class="mfld full"><label>Hobby-uri</label><input id="pHobbies" placeholder="ex: fotografie, drumeții"></div>'
+        +       '<div class="mfld"><label>Ultimul contact</label><input type="date" id="pLastContact"></div>'
+        +       '<div class="mfld"><label>&nbsp;</label><button type="button" class="ghost" onclick="setLastContactToday()" style="width:100%">📅 Azi</button></div>'
+        +       '<div class="mfld full"><label>Note</label><textarea id="pNotes" rows="2" placeholder="notă opțională..."></textarea></div>'
+        +     '</div>'
+        +   '</div>'
+        +   '<div class="modal-foot"><button class="mdel" id="pDelBtn" onclick="deletePersonFromModal()" style="display:none">🗑 Șterge</button><div class="rightgrp"><button onclick="closePersonModal()">Anulează</button><button class="primary" id="pSaveBtn" onclick="savePersonModal()">✓ Salvează</button></div></div>'
+        + '</div>';
+      document.body.appendChild(m);
+    }
+  }
+
+  /* ---- render ---- */
+  window.renderPeopleAlerts=function(){
+    var host=$("peopleAlerts"); if(!host)return;
+    var al=window.collectBirthdayAlerts();
+    if(!al.length){ host.innerHTML=""; return; }
+    host.innerHTML='<div style="background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid color-mix(in srgb,var(--accent) 40%,var(--line));border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px"><b style="color:var(--accent)">🎂 Zile de naștere apropiate:</b><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">'
+      + al.map(function(a){ var col=a.days===0?"var(--green)":"var(--accent)"; var t=a.days===0?"🎉 astăzi!":(a.days===1?"mâine":("în "+a.days+" zile")); var age=a.age!=null?(" · împlinește "+(a.age+(a.days===0?0:1))):""; return '<span style="background:var(--panel2);border:1px solid '+col+';color:'+col+';border-radius:20px;padding:3px 10px;font-weight:600">'+esc2(a.name)+': '+t+age+'</span>'; }).join("")
+      + '</div></div>';
+  };
+
+  function syncNote(){
+    var h=$("peopleSyncNote"); if(!h)return;
+    if(window.dl && dl.ready && !dl.hasPeopleTable){
+      h.innerHTML='<div style="background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 40%,var(--line));border-radius:12px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;color:var(--txt)">⚠️ Persoanele funcționează local, dar <b>nu se sincronizează încă</b>. Rulează scriptul <b>creeaza_tabela_people.sql</b> în Supabase, apoi 🔄 reîncarcă.</div>';
+    } else h.innerHTML="";
+  }
+
+  window.renderPeople=function(){
+    injectPage(); syncNote(); window.renderPeopleAlerts();
+    var grid=$("peopleGrid"); if(!grid)return;
+    var ppl=(window.people||[]).slice().sort(function(a,b){ var da=daysUntilBday(a.birthday), db=daysUntilBday(b.birthday); if(da==null)da=999; if(db==null)db=999; if(da!==db)return da-db; return String(a.name||"").localeCompare(String(b.name||""),"ro"); });
+    if(!ppl.length){ grid.innerHTML='<div class="empty" style="grid-column:1/-1">Nicio persoană încă. Adaugă prima persoană mai sus. 👥</div>'; return; }
+    grid.innerHTML=ppl.map(function(p){
+      var idx=window.people.indexOf(p);
+      var du=daysUntilBday(p.birthday), today=(du===0);
+      var age=calcAge(p.birthday), z=zodiac(p.birthday);
+      var ds=daysSince(p.lastContact);
+      var av=p.photo?'<img src="'+p.photo+'" alt="">':'<span>'+initials(p.name)+'</span>';
+      var bdayBadge="";
+      if(du!=null){ if(today)bdayBadge='<span class="pb-badge today">🎂 Astăzi!</span>'; else if(du<=7)bdayBadge='<span class="pb-badge soon">🎂 în '+du+'z</span>'; }
+      var meta=[];
+      if(p.birthday){ meta.push('🎂 '+isoToDMY(toISO(p.birthday))+(age!=null?(' · '+age+' ani'):'')); if(z)meta.push(z.sym+' '+z.name+' · '+MONTHS_RO[new Date(p.birthday).getMonth()]); }
+      if(p.spouse)meta.push('💍 '+esc2(p.spouse));
+      if(p.children)meta.push('🧒 '+esc2(p.children));
+      if(p.hobbies)meta.push('🎨 '+esc2(p.hobbies));
+      if(ds!=null)meta.push('📞 '+(ds===0?'contact azi':(ds===1?'ieri':(ds+' zile în urmă'))));
+      return '<div class="person-card'+(today?' isbday':'')+'" onclick="openPersonModal('+idx+')">'
+        + '<div class="pc-top"><div class="pc-avatar">'+av+'</div>'
+        +   '<div class="pc-id"><div class="pc-name">'+esc2(p.name||"(fără nume)")+' '+bdayBadge+'</div><div class="pc-rel">'+relLabel(p.relation)+'</div></div></div>'
+        + (meta.length?'<div class="pc-meta">'+meta.map(function(x){return '<span>'+x+'</span>';}).join("")+'</div>':'')
+        + (p.notes?'<div class="pc-notes">“'+esc2(p.notes)+'”</div>':'')
+        + '</div>';
+    }).join("");
+  };
+
+  /* ---- CRUD ---- */
+  window.addPerson=function(){ var inp=$("newPersonName"); var name=(inp&&inp.value||"").trim(); if(!window.people)window.people=[]; var p={id:uid(),name:name||("Persoană "+(window.people.length+1)),relation:"prieteni",birthday:"",children:"",spouse:"",hobbies:"",lastContact:"",photo:"",notes:"",_seq:Date.now()}; window.people.unshift(p); if(inp)inp.value=""; markDirty(); scheduleBackup(); window.renderPeople(); openPersonModal(0); };
+
+  var editIdx=-1, tmpPhoto="";
+  window.openPersonModal=function(idx){ injectPage(); editIdx=idx; var p=window.people[idx]; if(!p)return; tmpPhoto=p.photo||"";
+    $("personModalTitle").textContent=p.name||"Persoană";
+    $("pName").value=p.name||""; $("pRelation").value=p.relation||"prieteni"; $("pBirthday").value=toISO(p.birthday)||"";
+    $("pSpouse").value=p.spouse||""; $("pChildren").value=p.children||""; $("pHobbies").value=p.hobbies||"";
+    $("pLastContact").value=toISO(p.lastContact)||""; $("pNotes").value=p.notes||"";
+    $("pDelBtn").style.display=""; renderAvatar(); updatePersonDerived();
+    $("personModal").classList.add("open"); };
+  window.closePersonModal=function(){ var m=$("personModal"); if(m)m.classList.remove("open"); editIdx=-1; tmpPhoto=""; };
+  function renderAvatar(){ var a=$("ppAvatar"); if(!a)return; a.innerHTML=tmpPhoto?'<img src="'+tmpPhoto+'" alt="">':'<span>'+initials($("pName").value||"?")+'</span>'; $("pPhotoRm").style.display=tmpPhoto?"":"none"; }
+  window.updatePersonDerived=function(){ var iso=$("pBirthday").value; var d=$("pDerived"); if(!d)return; if(!iso){ d.innerHTML=""; return; } var age=calcAge(iso),z=zodiac(iso),mo=MONTHS_RO[new Date(iso).getMonth()]; d.innerHTML='<span class="pd-chip">🎂 '+(age!=null?age+' ani':'—')+'</span>'+(z?'<span class="pd-chip">'+z.sym+' '+z.name+'</span>':'')+'<span class="pd-chip">📅 '+mo+'</span>'; };
+  window.setLastContactToday=function(){ var t=new Date(); $("pLastContact").value=t.toISOString().slice(0,10); };
+
+  window.onPersonPhoto=function(input){ var f=input.files&&input.files[0]; if(!f)return; var rd=new FileReader(); rd.onload=function(e){ var img=new Image(); img.onload=function(){ var max=240; var w=img.width,h=img.height; var s=Math.min(max/w,max/h,1); var cw=Math.round(w*s),ch=Math.round(h*s); var cv=document.createElement("canvas"); cv.width=cw; cv.height=ch; var ctx=cv.getContext("2d"); ctx.drawImage(img,0,0,cw,ch); tmpPhoto=cv.toDataURL("image/jpeg",0.75); renderAvatar(); }; img.src=e.target.result; }; rd.readAsDataURL(f); input.value=""; };
+  window.clearPersonPhoto=function(){ tmpPhoto=""; renderAvatar(); };
+
+  window.savePersonModal=function(){ if(editIdx<0||!window.people[editIdx])return; var p=window.people[editIdx];
+    p.name=$("pName").value.trim(); p.relation=$("pRelation").value; p.birthday=$("pBirthday").value;
+    p.spouse=$("pSpouse").value.trim(); p.children=$("pChildren").value.trim(); p.hobbies=$("pHobbies").value.trim();
+    p.lastContact=$("pLastContact").value; p.notes=$("pNotes").value.trim(); p.photo=tmpPhoto||"";
+    markDirty(); scheduleBackup(); window.renderPeople(); closePersonModal(); toast("Persoană salvată"); };
+  window.deletePersonFromModal=function(){ if(editIdx<0)return; var p=window.people[editIdx]; if(!confirm("Ștergi „"+(p.name||"această persoană")+"”?"))return; window.people=window.people.filter(function(x){return x!==p;}); markDirty(); scheduleBackup(); window.renderPeople(); closePersonModal(); toast("Persoană ștearsă"); };
+
+  /* ---- integrare navigare ---- */
+  function wireNav(){
+    // tab în sidebar/nav (după Mașini)
+    var carsTab=$("tabCars");
+    if(carsTab && !$("tabPeople")){ var b=document.createElement("button"); b.className="tab"; b.id="tabPeople"; b.setAttribute("onclick","showPage('people')"); b.innerHTML="👥 Persoane"; carsTab.parentNode.insertBefore(b, carsTab.nextSibling); }
+    // hook showPage
+    var _show=window.showPage;
+    window.showPage=function(p){ try{_show(p);}catch(e){console.warn(e);} var pe=$("pagePeople"); if(pe)pe.classList.toggle("active",p==="people"); var te=$("tabPeople"); if(te)te.classList.toggle("active",p==="people"); if(p==="people")window.renderPeople(); };
+  }
+
+  function init(){ if(!window.people)window.people=[]; try{ injectPage(); wireNav(); }catch(e){ console.warn("people init:",e); } }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",function(){ setTimeout(init,80); });
+  else setTimeout(init,80);
 })();
 
 </script>
