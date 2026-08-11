@@ -1368,6 +1368,13 @@ html[data-theme="night"] .tv-label span, html[data-theme="grape"] .tv-label span
 #pmTravel .pmt-km{ font-weight:800;font-variant-numeric:tabular-nums;font-size:12.5px;white-space:nowrap;color:var(--accent); }
 #pmTravel .pmt-empty{ text-align:center;color:var(--muted);padding:26px 10px; }
 </style>
+<style id="reload-mobile-fix">
+/* butonul „Reîncarcă din cloud" în bara de jos (mobil), deasupra temei */
+@media (max-width:820px){
+  .bb-reload{ flex:1 1 100% !important; justify-content:center; font-weight:700; }
+  .bb-reload::after{ content:" Reîncarcă din cloud"; }
+}
+</style>
 </head>
 <body>
 <div class="login-overlay" id="loginOverlay">
@@ -1978,7 +1985,7 @@ function applyChartFilter(f){if(f.field==="month"){const same=filterState.fYear=
 let toastT=null;
 function toast(msg){let el=document.getElementById("toast");if(!el){el=document.createElement("div");el.id="toast";el.className="toast";document.body.appendChild(el);}el.textContent=msg;el.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>el.classList.remove("show"),3400);}
 let bbMoved=false;
-function relocate(){const bar=document.getElementById("bottomBar"),toolbar=document.querySelector(".toolbar");const cur=document.getElementById("curBtn"),theme=document.getElementById("themeWrap"),cloudB=document.getElementById("cloudBadge"),io=document.getElementById("ioGroup");if(!bar||!toolbar)return;if(isMobile()&&!bbMoved){bar.innerHTML='<div class="bb-title">Cont &amp; setări</div><div class="bb-row" id="bbRowA"></div><div class="bb-row" id="bbRowB"></div>';const a=document.getElementById("bbRowA"),b=document.getElementById("bbRowB");a.appendChild(cloudB);b.appendChild(cur);b.appendChild(theme);bbMoved=true;}else if(!isMobile()&&bbMoved){toolbar.insertBefore(cloudB,toolbar.firstChild);toolbar.appendChild(cur);toolbar.appendChild(theme);toolbar.appendChild(io);bar.innerHTML="";bbMoved=false;}}
+function relocate(){const bar=document.getElementById("bottomBar"),toolbar=document.querySelector(".toolbar");const cur=document.getElementById("curBtn"),theme=document.getElementById("themeWrap"),cloudB=document.getElementById("cloudBadge"),io=document.getElementById("ioGroup"),refresh=document.getElementById("refreshBtn");if(!bar||!toolbar)return;if(isMobile()&&!bbMoved){bar.innerHTML='<div class="bb-title">Cont &amp; setări</div><div class="bb-row" id="bbRowA"></div><div class="bb-row" id="bbRowB"></div>';const a=document.getElementById("bbRowA"),b=document.getElementById("bbRowB");a.appendChild(cloudB);b.appendChild(cur);if(refresh){refresh.classList.add("bb-reload");b.appendChild(refresh);}b.appendChild(theme);bbMoved=true;}else if(!isMobile()&&bbMoved){toolbar.insertBefore(cloudB,toolbar.firstChild);if(refresh){refresh.classList.remove("bb-reload");toolbar.insertBefore(refresh,cloudB.nextSibling);}toolbar.appendChild(cur);toolbar.appendChild(theme);toolbar.appendChild(io);bar.innerHTML="";bbMoved=false;}}
 document.addEventListener("keydown",e=>{if(e.key==="Escape"){if(document.getElementById("rowModal").classList.contains("open"))closeRowModal();if(document.getElementById("dupModal").classList.contains("open"))closeDupModal();}});
 window.addEventListener("resize",()=>{if(isChartsActive())drawCharts();const m=isMobile();if(lastMobile!==null&&m!==lastMobile)render();lastMobile=m;relocate();});
 let lastMobile=null;lastMobile=isMobile();relocate();
@@ -2657,7 +2664,7 @@ load();
   /* ---- floating bottom nav (mobile) ---- */
   function buildBottomNav(){
     var old=$("bottomNav"); if(old) old.remove();
-    var items=[["home","🏠","Acasă"],["table","📋","Tranzacții"],["charts","📊","Grafice"],["report","📅","Raport"],["settings","⚙️","Setări"]];
+    var items=[["home","🏠","Acasă"],["table","📋","Tranzacții"],["charts","📊","Grafice"],["travel","🌍","Travel"],["report","📅","Raport"],["settings","⚙️","Setări"]];
     var nav=document.createElement("div"); nav.id="bottomNav";
     nav.innerHTML=items.map(function(it){return '<button class="bn-item" data-p="'+it[0]+'" onclick="showPage(\''+it[0]+'\')"><span class="bn-ic">'+it[1]+'</span>'+it[2]+'</button>';}).join("");
     document.body.appendChild(nav);
@@ -3140,7 +3147,7 @@ load();
   window.travelPlaces = window.travelPlaces || [];
   window.tvAutoPhoto = window.tvAutoPhoto || {};   /* cache: "name|country" -> url|null */
   var inflight={};
-  var fYear="", fCountry="", fStatus="", fPeople=new Set();
+  var fYear="", fCountry="", fStatus="", fPurpose="", fPeople=new Set();
 
   function $(id){ return document.getElementById(id); }
   function esc(v){ return (v==null?"":String(v)).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
@@ -3263,6 +3270,7 @@ load();
   function filtered(){
     return (window.travelPlaces||[]).filter(function(p){
       if(fStatus && p.status!==fStatus) return false;
+      if(fPurpose && (p.purpose||"travel")!==fPurpose) return false;
       if(fYear && placeYear(p)!==fYear) return false;
       if(fCountry && p.country!==fCountry) return false;
       if(fPeople.size){ var has=(p.people||[]).some(function(id){return fPeople.has(id);}); if(!has) return false; }
@@ -3275,8 +3283,9 @@ load();
   /* Toate cele 3 stiluri includ nativ NUMELE ȚĂRILOR + CONTURUL GRANIȚELOR. */
   var STYLES={
     voyager:{ name:"🗺️ Clar", url:"https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", attr:"© OpenStreetMap © CARTO", sub:"abcd" },
-    positron:{ name:"◻️ Minimal", url:"https://{s}.basemaps.cartocdn.com/rastertiles/positron/{z}/{x}/{y}{r}.png", attr:"© OpenStreetMap © CARTO", sub:"abcd" },
-    osm:{ name:"🌐 Clasic", url:"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", attr:"© OpenStreetMap", sub:"abc" }
+    light:{ name:"◻️ Minimal", url:"https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png", attr:"© OpenStreetMap © CARTO", sub:"abcd" },
+    osm:{ name:"🌐 Clasic", url:"https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", attr:"© OpenStreetMap", sub:"abc" },
+    satellite:{ name:"🛰️ Satelit", url:"https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", attr:"© Esri", sub:"abc" }
   };
   function currentStyle(){ var s=null; try{ s=localStorage.getItem(LS_STYLE); }catch(e){} return STYLES[s]?s:"voyager"; }
   function applyStyle(key){
@@ -3306,6 +3315,8 @@ load();
       cs.map(function(c){ return '<option value="'+esc(c)+'"'+(fCountry===c?" selected":"")+'>'+esc(c)+'</option>'; }).join("")+'</select>';
     var stHtml=[["","Toate"],["visited","✅ Vizitate"],["wishlist","⭐ Wishlist"]].map(function(o){
       return '<button class="tv-chip'+(fStatus===o[0]?" sel":"")+'" onclick="tvSetStatus(\''+o[0]+'\')">'+o[1]+'</button>'; }).join("");
+    var puHtml=[["","Toate"],["travel","🌴 Travel"],["work","💼 Work"]].map(function(o){
+      return '<button class="tv-chip'+(fPurpose===o[0]?" sel":"")+'" onclick="tvSetPurpose(\''+o[0]+'\')">'+o[1]+'</button>'; }).join("");
     var pHtml = pe.length? ('<div class="tv-ppl-toggle"><button class="tv-chip" onclick="tvTogglePeopleFilter()">'+(fPeople.size?("Persoane: "+fPeople.size):"Persoane ▾")+'</button>'+
         '<div class="tv-ppl-list hidden" id="tvPplList">'+pe.map(function(p){ return '<button class="tv-chip'+(fPeople.has(p.id)?" sel":"")+'" onclick="tvTogglePerson(\''+p.id+'\')">'+esc(p.name||"?")+'</button>'; }).join("")+
         (fPeople.size?'<button class="tv-chip" onclick="tvClearPeople()">✕ Curăță</button>':'')+'</div></div>')
@@ -3313,6 +3324,7 @@ load();
     host.innerHTML=
         '<div class="tv-frow"><span class="tv-flabel">An</span><button class="tv-chip'+(fYear===""?" sel":"")+'" onclick="tvSetYear(\'\')">Toți</button>'+yHtml+'</div>'
       + '<div class="tv-frow"><span class="tv-flabel">Țară</span>'+cHtml+'<span class="tv-flabel" style="margin-left:8px">Status</span>'+stHtml+'</div>'
+      + '<div class="tv-frow"><span class="tv-flabel">Scop</span>'+puHtml+'</div>'
       + '<div class="tv-frow"><span class="tv-flabel">Persoane</span>'+pHtml+'</div>';
   }
   function renderKm(){
@@ -3391,6 +3403,7 @@ load();
   window.tvSetYear=function(y){ fYear=y; renderAll(); };
   window.tvSetCountry=function(c){ fCountry=c; renderAll(); };
   window.tvSetStatus=function(s){ fStatus=s; renderAll(); };
+  window.tvSetPurpose=function(pu){ fPurpose=pu; renderAll(); };
   window.tvTogglePeopleFilter=function(){ var l=$("tvPplList"); if(l)l.classList.toggle("hidden"); };
   window.tvTogglePerson=function(id){ if(fPeople.has(id))fPeople.delete(id); else fPeople.add(id); renderAll(); var l=$("tvPplList"); if(l)l.classList.remove("hidden"); };
   window.tvClearPeople=function(){ fPeople.clear(); renderAll(); };
