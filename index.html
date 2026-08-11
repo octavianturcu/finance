@@ -1427,6 +1427,74 @@ html[data-theme="night"] .tv-label span, html[data-theme="grape"] .tv-label span
   .bb-reload::after{ content:" Reîncarcă din cloud"; }
 }
 </style>
+<style id="todo-css-2026">
+/* ══ ✅ TO-DO — pagină nativă ══ */
+#pageTodo .td-head{ display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px; }
+#pageTodo .td-head h2{ margin:0;font-size:20px;font-weight:800; }
+#pageTodo .td-count{ display:inline-flex;align-items:center;gap:7px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--accent);border:1px solid color-mix(in srgb,var(--accent) 35%,var(--line));border-radius:999px;padding:6px 14px;font-weight:800;font-variant-numeric:tabular-nums; }
+#pageTodo .td-actions{ margin-left:auto;display:flex;gap:8px;flex-wrap:wrap; }
+/* quick add */
+.td-add{ display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap; }
+.td-add input{ flex:1;min-width:200px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:14px 16px;font-size:16px;color:var(--txt);font-family:var(--font); }
+.td-add input:focus{ outline:none;border-color:var(--accent); }
+/* filters */
+.td-filters{ background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px 14px;margin-bottom:14px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:10px; }
+.td-frow{ display:flex;align-items:center;gap:10px;flex-wrap:wrap; }
+.td-flabel{ font-size:10.5px;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);font-weight:800;min-width:70px; }
+.td-chip{ background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:5px 12px;font-size:12.5px;cursor:pointer;color:var(--txt);transition:.14s;font-weight:600; }
+.td-chip:hover{ border-color:var(--accent); }
+.td-chip.sel{ background:var(--accent);border-color:transparent;color:#fff; }
+.td-search{ display:flex;align-items:center;gap:8px;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:8px 14px;flex:1 1 220px;min-width:180px; }
+.td-search input{ background:transparent;border:none;outline:none;color:var(--txt);font-size:13.5px;font-family:var(--font);width:100%; }
+/* list */
+.td-list{ display:flex;flex-direction:column;gap:9px;max-width:820px; }
+.td-item{ display:flex;align-items:flex-start;gap:12px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px 14px;box-shadow:var(--shadow);transition:transform .14s var(--ease),box-shadow .16s,border-color .16s;position:relative; }
+.td-item:hover{ box-shadow:var(--e-float,0 18px 40px -20px rgba(0,0,0,.5));transform:translateX(2px); }
+.td-item.dragging{ opacity:.5; }
+.td-item.dragover{ border-style:dashed;border-color:var(--accent); }
+.td-item.done{ opacity:.62;background:var(--panel2); }
+.td-handle{ cursor:grab;color:var(--muted);font-size:15px;user-select:none;touch-action:none;padding-top:3px;flex:0 0 auto; }
+.td-handle:active{ cursor:grabbing; }
+.td-box{ width:26px;height:26px;flex:0 0 auto;border-radius:8px;border:2px solid var(--muted);cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:15px;color:#fff;transition:.15s;background:transparent;margin-top:1px; }
+.td-box:hover{ border-color:var(--accent); }
+.td-item.done .td-box{ background:var(--green);border-color:var(--green); }
+.td-prio{ width:5px;align-self:stretch;border-radius:5px;flex:0 0 auto; }
+.td-prio.urgent{ background:var(--red); } .td-prio.normal{ background:var(--accent); } .td-prio.low{ background:var(--muted); }
+.td-main{ flex:1;min-width:0;display:flex;flex-direction:column;gap:5px; }
+.td-text{ font-size:16px;font-weight:600;color:var(--txt);word-break:break-word;line-height:1.35; }
+.td-item.done .td-text{ text-decoration:line-through;color:var(--muted); }
+.td-meta{ display:flex;gap:7px;flex-wrap:wrap;align-items:center; }
+.td-tag{ font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:999px;background:var(--panel2);border:1px solid var(--line);color:var(--muted);display:inline-flex;align-items:center;gap:4px; }
+.td-tag.due{ }
+.td-tag.due.over{ color:var(--red);border-color:color-mix(in srgb,var(--red) 45%,var(--line));background:color-mix(in srgb,var(--red) 12%,transparent); }
+.td-tag.due.soon{ color:var(--amber);border-color:color-mix(in srgb,var(--amber) 45%,var(--line));background:color-mix(in srgb,var(--amber) 12%,transparent); }
+.td-tag.list{ color:var(--accent);border-color:color-mix(in srgb,var(--accent) 35%,var(--line));background:color-mix(in srgb,var(--accent) 10%,transparent); }
+.td-note{ font-size:12.5px;color:var(--muted);font-style:italic; }
+.td-btns{ display:flex;gap:4px;flex:0 0 auto;align-items:center; }
+.td-btns button{ background:transparent;border:none;color:var(--muted);cursor:pointer;font-size:15px;padding:5px 7px;border-radius:8px; }
+.td-btns button:hover{ background:var(--panel2);color:var(--accent); }
+.td-btns .td-del:hover{ color:var(--red); }
+.td-sep{ display:flex;align-items:center;gap:10px;color:var(--muted);font-size:12px;margin:8px 0 2px;text-transform:uppercase;letter-spacing:.5px;font-weight:700; }
+.td-sep::before,.td-sep::after{ content:"";flex:1;height:1px;background:var(--line); }
+.td-empty{ text-align:center;color:var(--muted);padding:40px 20px; }
+/* modal */
+.td-seg{ display:inline-flex;gap:3px;padding:3px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;width:100%; }
+.td-seg button{ flex:1;background:transparent;border:none;padding:9px 8px;border-radius:8px;color:var(--muted);font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font); }
+.td-seg button.on.urgent{ background:var(--red);color:#fff; } .td-seg button.on.normal{ background:var(--accent);color:#fff; } .td-seg button.on.low{ background:var(--muted);color:#fff; }
+/* home reminder tile rows */
+.td-al{ display:flex;align-items:center;gap:11px;padding:9px 6px;border-bottom:1px solid var(--hair,color-mix(in srgb,var(--txt) 8%,transparent));cursor:pointer;border-radius:10px;transition:background .14s; }
+.td-al:last-child{ border-bottom:none; }
+.td-al:hover{ background:color-mix(in srgb,var(--accent) 7%,transparent); }
+.td-al .td-al-dot{ width:9px;height:9px;border-radius:50%;flex:0 0 auto; }
+.td-al .td-al-dot.urgent{ background:var(--red); } .td-al .td-al-dot.normal{ background:var(--accent); } .td-al .td-al-dot.low{ background:var(--muted); }
+.td-al .td-al-tx{ flex:1;min-width:0;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+.td-al .pin{ font-weight:800;font-size:11px;padding:3px 9px;border-radius:999px;white-space:nowrap; }
+@media (max-width:820px){
+  .td-list{ max-width:100%; }
+  .td-item{ padding:12px; }
+  .td-text{ font-size:15px; }
+}
+</style>
 </head>
 <body>
 <div class="login-overlay" id="loginOverlay">
@@ -1499,6 +1567,7 @@ html[data-theme="night"] .tv-label span, html[data-theme="grape"] .tv-label span
 </header>
 <nav class="nav">
   <button class="tab active" id="tabTable" onclick="showPage('table')">📋 Tranzacții</button>
+  <button class="tab" id="tabTodo" onclick="showPage('todo')">✅ To-Do</button>
   <button class="tab" id="tabCharts" onclick="showPage('charts')">📊 Grafice</button>
   <button class="tab" id="tabSankey" onclick="showPage('sankey')">🔀 Sankey</button>
   <button class="tab" id="tabLists" onclick="showPage('lists')">🛒 Liste</button>
@@ -1740,6 +1809,7 @@ let rows=[],filtered=[],page=0,pageSize=10,dirty=false,seqCounter=1,sortState={c
 let shoppingLists=[],currentListId=null,listSort="seq";
 let cars=[],catBudgets={},recStatus={},backups=[];
 var people=[];
+var todos=[];
 let recSelectedYears=null;
 function isMobile(){return window.matchMedia("(max-width:820px)").matches;}
 function uid(){return Math.random().toString(36).slice(2)+Date.now().toString(36);}
@@ -2005,13 +2075,13 @@ function downloadBackup(id){const b=backups.find(x=>x.id===id);if(!b)return;cons
 /* ============ EXPORT / IMPORT ============ */
 function download(name,text,type){const b=new Blob([text],{type});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
 function stamp(){return new Date().toISOString().slice(0,10);}
-function fullExportObject(){return {app:"BudgetTracker",version:3,exportedAt:new Date().toISOString(),rows,shoppingLists,cars,catBudgets,recStatus,backups,people,travelPlaces:(window.travelPlaces||[]),categories:CATEGORIES,settings};}
+function fullExportObject(){return {app:"BudgetTracker",version:3,exportedAt:new Date().toISOString(),rows,shoppingLists,cars,catBudgets,recStatus,backups,people,travelPlaces:(window.travelPlaces||[]),todos,categories:CATEGORIES,settings};}
 function exportJSON(){download("budget_complet_"+stamp()+".json",JSON.stringify(fullExportObject(),null,2),"application/json");toast("⬇️ Export complet (toate datele)");}
 function exportAll(){exportJSON();}
 function csvCell(v){let s=(v==null)?"":String(v);if(typeof v==="boolean")s=v?"true":"false";if(/[",\n;]/.test(s))s='"'+s.replace(/"/g,'""')+'"';return s;}
 function exportCSV(){const h=COLS.join(",");const lines=rows.map(r=>{r["+/-"]=plusMinus(r.Amount);r.Reccurent=recurrent(r.Type);return COLS.map(c=>c==="Data"?csvCell(isoToDMY(toISO(r.Data))):csvCell(r[c])).join(",");});download("budget_"+stamp()+".csv",h+"\n"+lines.join("\n"),"text/csv");}
 function exportCarsCSV(){const cols=["Nume","Icon","VIN","Nr inmatriculare","ITP","Rovinieta","RCA"];const lines=cars.map(c=>[c.name,c.icon,c.vin,c.plate,isoToDMY(toISO(c.itp)),isoToDMY(toISO(c.rovinieta)),isoToDMY(toISO(c.rca))].map(csvCell).join(","));download("masini_"+stamp()+".csv",cols.join(",")+"\n"+lines.join("\n"),"text/csv");toast("⬇️ Mașini exportate (CSV)");}
-function importJSON(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{try{const d=JSON.parse(e.target.result);if(Array.isArray(d)){rows=d.map(normalize);}else{if(Array.isArray(d.rows))rows=d.rows.map(normalize);if(Array.isArray(d.shoppingLists))shoppingLists=d.shoppingLists;if(Array.isArray(d.cars))cars=d.cars;if(d.catBudgets)catBudgets=d.catBudgets;if(d.recStatus)recStatus=d.recStatus;if(Array.isArray(d.backups))backups=d.backups;if(Array.isArray(d.people))people=d.people;if(Array.isArray(d.travelPlaces)){window.travelPlaces=d.travelPlaces;try{localStorage.setItem("fp2_travel_places",JSON.stringify(window.travelPlaces));}catch(_e){}if(typeof window.tvSyncNow==="function")setTimeout(window.tvSyncNow,300);}if(d.categories)CATEGORIES=d.categories;if(d.settings)settings=Object.assign(settings,d.settings);}ensureSeq();page=0;applyCurrencyUI();buildFilterOptions();render();if(currentPage==="lists")renderLists();markDirty();scheduleBackup();toast("⬆️ Import complet reușit");}catch(err){alert("JSON invalid: "+err);}input.value="";};rd.readAsText(f);}
+function importJSON(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{try{const d=JSON.parse(e.target.result);if(Array.isArray(d)){rows=d.map(normalize);}else{if(Array.isArray(d.rows))rows=d.rows.map(normalize);if(Array.isArray(d.shoppingLists))shoppingLists=d.shoppingLists;if(Array.isArray(d.cars))cars=d.cars;if(d.catBudgets)catBudgets=d.catBudgets;if(d.recStatus)recStatus=d.recStatus;if(Array.isArray(d.backups))backups=d.backups;if(Array.isArray(d.people))people=d.people;if(Array.isArray(d.todos))todos=d.todos;if(Array.isArray(d.travelPlaces)){window.travelPlaces=d.travelPlaces;try{localStorage.setItem("fp2_travel_places",JSON.stringify(window.travelPlaces));}catch(_e){}if(typeof window.tvSyncNow==="function")setTimeout(window.tvSyncNow,300);}if(d.categories)CATEGORIES=d.categories;if(d.settings)settings=Object.assign(settings,d.settings);}ensureSeq();page=0;applyCurrencyUI();buildFilterOptions();render();if(currentPage==="lists")renderLists();markDirty();scheduleBackup();toast("⬆️ Import complet reușit");}catch(err){alert("JSON invalid: "+err);}input.value="";};rd.readAsText(f);}
 function importCSV(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{try{const parsed=parseCSV(e.target.result).map(normalize);rows=rows.concat(parsed);ensureSeq();page=0;buildFilterOptions();render();markDirty();dlFlush();toast(`⬆️ ${parsed.length} rânduri importate (adăugate la cele existente). Se salvează în cloud...`);}catch(err){alert("CSV invalid: "+err);}input.value="";};rd.readAsText(f);}
 function normalize(o){const r=newRow();COLS.forEach(c=>{if(o[c]!==undefined)r[c]=o[c];});if(o.id)r.id=o.id;r.Data=toISO(r.Data);["Asset","Disposable","Spike"].forEach(c=>{const s=String(r[c]).toLowerCase();r[c]=(r[c]===true||s==="true"||s==="1"||s==="yes"||s==="da"||s==="x");});r["+/-"]=plusMinus(r.Amount);r.Reccurent=recurrent(r.Type);return r;}
 function parseCSV(text){const out=[];let field="",row=[],inq=false;text=text.replace(/\r\n/g,"\n").replace(/\r/g,"\n");const firstLine=text.split("\n")[0]||"";const delim=(firstLine.split(";").length>firstLine.split(",").length)?";":",";for(let i=0;i<text.length;i++){const ch=text[i];if(inq){if(ch==='"'){if(text[i+1]==='"'){field+='"';i++;}else inq=false;}else field+=ch;}else{if(ch==='"')inq=true;else if(ch===delim){row.push(field);field="";}else if(ch==="\n"){row.push(field);out.push(row);row=[];field="";}else field+=ch;}}if(field!==""||row.length){row.push(field);out.push(row);}if(!out.length)return[];const header=out.shift().map(h=>h.trim());return out.filter(r=>r.some(c=>c!=="")).map(r=>{const o={};header.forEach((h,idx)=>o[h]=r[idx]!==undefined?r[idx].trim():"");return o;});}
@@ -2366,7 +2436,7 @@ async function integrityCheck(){
    - cars/lists/list_items/app_config: neschimbate (aveau deja coloane reale).
    =================================================================== */
 const cloud={cfg:null,client:null,session:null};
-const dl={ready:false,shadow:{},loading:false,saving:false,pending:false,saveT:null,loadedForUser:null,loggingIn:false,hasTagsColumn:false,hasPeopleTable:false,hasCarPhotoColumn:false,hasCarService:false,hasPeopleSocial:false};
+const dl={ready:false,shadow:{},loading:false,saving:false,pending:false,saveT:null,loadedForUser:null,loggingIn:false,hasTagsColumn:false,hasPeopleTable:false,hasCarPhotoColumn:false,hasCarService:false,hasPeopleSocial:false,hasTodos:false};
 
 function canon(v){if(v===null||typeof v!=="object")return JSON.stringify(v);if(Array.isArray(v))return "["+v.map(canon).join(",")+"]";return "{"+Object.keys(v).sort().map(k=>JSON.stringify(k)+":"+canon(v[k])).join(",")+"}";}
 
@@ -2447,6 +2517,7 @@ function dlSnapshot(){
   rows.forEach(r=>{if(!r.id)r.id=uid();const trow={data:toISO(r.Data)||null,status:r.Status||null,categ:r.Categ||null,type:r.Type||null,amount:txAmountNum(r.Amount),info:(r.Info||null),asset:!!r.Asset,disposable:!!r.Disposable,spike:!!r.Spike,seq:(r._seq==null?null:r._seq)};if(dl.hasTagsColumn)trow.tags=normTags(r.Tags)||null;m["transactions:"+r.id]={table:"transactions",id:r.id,row:trow};});
   cars.forEach(c=>{if(!c.id)c.id=uid();const dOrNull=v=>{const iso=toISO(v);return iso?iso:null;};const crow={name:c.name||null,icon:c.icon||null,vin:c.vin||null,plate:c.plate||null,itp:dOrNull(c.itp),rovinieta:dOrNull(c.rovinieta),rca:dOrNull(c.rca),seq:c._seq};if(dl.hasCarPhotoColumn)crow.photo=c.photo||null;if(dl.hasCarService){crow.last_service=dOrNull(c.lastService);crow.last_service_km=((c.lastServiceKm===""||c.lastServiceKm==null)?null:(parseInt(c.lastServiceKm,10)||null));crow.next_service=dOrNull(c.nextService);}m["cars:"+c.id]={table:"cars",id:c.id,row:crow};});
   if(dl.hasPeopleTable){people.forEach(p=>{if(!p.id)p.id=uid();const dON=v=>{const iso=toISO(v);return iso?iso:null;};const prow={name:p.name||null,relation:p.relation||null,birthday:dON(p.birthday),children:p.children||null,spouse:p.spouse||null,hobbies:p.hobbies||null,last_contact:dON(p.lastContact),photo:p.photo||null,notes:p.notes||null,seq:p._seq};if(dl.hasPeopleSocial){prow.instagram=p.instagram||null;prow.facebook=p.facebook||null;}m["people:"+p.id]={table:"people",id:p.id,row:prow};});}
+  if(dl.hasTodos){todos.forEach(t=>{if(!t.id)t.id=uid();const dON=v=>{const iso=toISO(v);return iso?iso:null;};m["todos:"+t.id]={table:"todos",id:t.id,row:{text:t.text||null,done:!!t.done,priority:t.priority||null,due:dON(t.due),list:t.list||null,notes:t.notes||null,done_at:(t.doneAt?new Date(t.doneAt).toISOString():null),seq:t._seq}};});}
   shoppingLists.forEach(l=>{if(!l.id)l.id=uid();m["lists:"+l.id]={table:"lists",id:l.id,row:{name:l.name||null,icon:l.icon||null,created:toTs(l.created)}};(l.items||[]).forEach(it=>{if(!it.id)it.id=uid();m["list_items:"+it.id]={table:"list_items",id:it.id,row:{list_id:l.id,text:it.text||null,qty:(it.qty==null?null:String(it.qty)),done:!!it.done,done_at:toTs(it.doneAt),created:toTs(it.created)}};});});
   m["app_config:main"]={table:"app_config",id:"main",row:{categories:CATEGORIES,settings:{baseCurrency:settings.baseCurrency,displayCurrency:settings.displayCurrency,rate:settings.rate,rateDate:settings.rateDate,rateSource:settings.rateSource},cat_budgets:catBudgets,rec_status:recStatus,backups:backups}};
   return m;
@@ -2477,6 +2548,7 @@ async function dlInitialLoad(force){
     try{const _cp=await cloud.client.from("cars").select("photo").limit(1);dl.hasCarPhotoColumn=!_cp.error;}catch(_e){dl.hasCarPhotoColumn=false;}
     try{const _cs=await cloud.client.from("cars").select("next_service").limit(1);dl.hasCarService=!_cs.error;}catch(_e){dl.hasCarService=false;}
     try{const _ps=await cloud.client.from("people").select("instagram").limit(1);dl.hasPeopleSocial=!_ps.error;}catch(_e){dl.hasPeopleSocial=false;}
+    try{const _td=await cloud.client.from("todos").select("id").limit(1);dl.hasTodos=!_td.error;}catch(_e){dl.hasTodos=false;}
     console.log("[load] coloana tags:",dl.hasTagsColumn);
     const tx=await dlLoadAll("transactions","*");
     const cr=await dlLoadAll("cars","*");
@@ -2492,6 +2564,8 @@ async function dlInitialLoad(force){
     cars=(cr||[]).map(r=>({id:r.id,name:r.name,icon:r.icon,photo:r.photo||"",vin:r.vin,plate:r.plate,itp:r.itp,rovinieta:r.rovinieta,rca:r.rca,lastService:r.last_service||"",lastServiceKm:(r.last_service_km==null?"":String(r.last_service_km)),nextService:r.next_service||"",_seq:r.seq}));
     let peData=[]; if(dl.hasPeopleTable){ try{ peData=await dlLoadAll("people","*"); }catch(e){ dl.hasPeopleTable=false; console.warn("people load:",e); } }
     people=(peData||[]).map(r=>({id:r.id,name:r.name||"",relation:r.relation||"prieteni",birthday:r.birthday||"",children:r.children||"",spouse:r.spouse||"",hobbies:r.hobbies||"",lastContact:r.last_contact||"",photo:r.photo||"",notes:r.notes||"",instagram:r.instagram||"",facebook:r.facebook||"",_seq:r.seq}));
+    let tdData=[]; if(dl.hasTodos){ try{ tdData=await dlLoadAll("todos","*"); }catch(e){ dl.hasTodos=false; console.warn("todos load:",e); } }
+    todos=(tdData||[]).map(r=>({id:r.id,text:r.text||"",done:!!r.done,priority:r.priority||"normal",due:r.due||"",list:r.list||"",notes:r.notes||"",doneAt:(r.done_at?Date.parse(r.done_at):null),_seq:r.seq}));
     const lmap={};(ls||[]).forEach(r=>{lmap[r.id]={id:r.id,name:r.name,icon:r.icon,created:fromTs(r.created),items:[]};});
     (li||[]).forEach(r=>{const L=lmap[r.list_id];const it={id:r.id,text:r.text,qty:r.qty,done:r.done,doneAt:(r.done_at?fromTs(r.done_at):null),created:fromTs(r.created)};if(L)L.items.push(it);});
     shoppingLists=Object.values(lmap);
@@ -2724,7 +2798,7 @@ load();
   /* ---- floating bottom nav (mobile) ---- */
   function buildBottomNav(){
     var old=$("bottomNav"); if(old) old.remove();
-    var items=[["home","🏠","Acasă"],["table","📋","Tranzacții"],["charts","📊","Grafice"],["travel","🌍","Travel"],["report","📅","Raport"],["settings","⚙️","Setări"]];
+    var items=[["home","🏠","Acasă"],["table","📋","Tranzacții"],["todo","✅","To-Do"],["travel","🌍","Travel"],["report","📅","Raport"],["settings","⚙️","Setări"]];
     var nav=document.createElement("div"); nav.id="bottomNav";
     nav.innerHTML=items.map(function(it){return '<button class="bn-item" data-p="'+it[0]+'" onclick="showPage(\''+it[0]+'\')"><span class="bn-ic">'+it[1]+'</span>'+it[2]+'</button>';}).join("");
     document.body.appendChild(nav);
@@ -3951,6 +4025,338 @@ load();
   function init(){ try{ injectTab(); wire(); wirePerson(); setTimeout(wirePerson,500); }catch(e){ console.warn("travel init:",e); } }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",function(){ setTimeout(init,280); });
   else setTimeout(init,280);
+})();
+</script>
+<script>
+/* ══════════════════════════════════════════════════════════════════
+   ✅ TO-DO — pagină nativă completă.
+   • Adăugare rapidă, bifare, editare, ștergere, reordonare (drag&drop).
+   • Prioritate (🔴 urgent / 🟡 normal / ⚪ scăzut), termen (deadline),
+     liste/categorii, note.
+   • Filtre: status (active/finalizate) · prioritate · listă · căutare.
+   • Reminder pe pagina Acasă pentru sarcini scadente ≤ X zile.
+   • Contor, „curăță finalizate", export JSON/CSV.
+   • Sincronizare prin tabela „todos" (motorul existent) + fallback local.
+   ══════════════════════════════════════════════════════════════════ */
+(function(){
+  "use strict";
+  var LS_KEY="fp2_todos";
+  var editId=null;
+  var fStatus="active", fPrio="", fList="", fQuery="";
+  var segPrio="normal";
+  var dragId=null;
+
+  function $(id){ return document.getElementById(id); }
+  function esc(v){ return (v==null?"":String(v)).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
+  function esA(v){ return esc(v).replace(/'/g,"&#39;"); }
+  function toISOd(v){ return (typeof toISO==="function")?toISO(v):(v||""); }
+  function dmy(iso){ return (typeof isoToDMY==="function")?isoToDMY(iso):iso; }
+  function daysTo(iso){ if(!iso)return null; try{ return daysUntil(toISOd(iso)); }catch(e){ var d=new Date(iso+"T00:00:00"); if(isNaN(d))return null; var t=new Date(); t.setHours(0,0,0,0); return Math.round((d-t)/86400000); } }
+  function ensureArr(){ if(!window.todos)window.todos=[]; return window.todos; }
+  function saveLocal(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(window.todos||[])); }catch(e){} }
+  function persist(){ saveLocal(); try{ if(typeof markDirty==="function")markDirty(); if(typeof scheduleBackup==="function")scheduleBackup(); }catch(e){} }
+
+  /* dacă motorul nu are încă tabela todos, păstrăm local ca fallback */
+  function loadLocalIfEmpty(){
+    if((!window.todos||!window.todos.length)){
+      try{ var l=JSON.parse(localStorage.getItem(LS_KEY)||"[]"); if(l&&l.length)window.todos=l; }catch(e){}
+    }
+  }
+
+  var PRIOS=[["urgent","🔴 Urgent"],["normal","🟡 Normal"],["low","⚪ Scăzut"]];
+  function prioLabel(p){ for(var i=0;i<PRIOS.length;i++)if(PRIOS[i][0]===p)return PRIOS[i][1]; return "🟡 Normal"; }
+  function prioRank(p){ return p==="urgent"?0:(p==="normal"?1:2); }
+
+  function lists(){ var s={}; (window.todos||[]).forEach(function(t){ if(t.list)s[t.list]=1; }); return Object.keys(s).sort(function(a,b){return a.localeCompare(b,"ro");}); }
+
+  /* ==================== CRUD ==================== */
+  function newTodo(text){ return { id:uid(), text:text||"", done:false, priority:segPrio||"normal", due:"", list:"", notes:"", doneAt:null, _seq:Date.now() }; }
+  window.tdQuickAdd=function(){
+    var inp=$("tdInput"); var raw=(inp&&inp.value||"").trim(); if(!raw) return;
+    ensureArr();
+    var t=newTodo(raw);
+    window.todos.unshift(t);
+    if(inp)inp.value="";
+    persist(); renderList(); renderFilters();
+    if(inp)inp.focus();
+  };
+  window.tdToggle=function(id){
+    var t=(window.todos||[]).find(function(x){return x.id===id;}); if(!t)return;
+    t.done=!t.done; t.doneAt=t.done?Date.now():null;
+    persist(); renderList();
+  };
+  window.tdDelete=function(id,ev){
+    if(ev)ev.stopPropagation();
+    var t=(window.todos||[]).find(function(x){return x.id===id;});
+    if(t && (t.notes||t.due||t.list) && !confirm("Ștergi „"+(t.text||"această sarcină")+"”?")) return;
+    window.todos=(window.todos||[]).filter(function(x){return x.id!==id;});
+    persist(); renderList(); renderFilters();
+  };
+  window.tdClearDone=function(){
+    var done=(window.todos||[]).filter(function(t){return t.done;}).length;
+    if(!done){ if(typeof toast==="function")toast("Nu există sarcini finalizate."); return; }
+    if(!confirm("Ștergi cele "+done+" sarcini finalizate?")) return;
+    window.todos=(window.todos||[]).filter(function(t){return !t.done;});
+    persist(); renderList(); renderFilters();
+    if(typeof toast==="function")toast("🧹 Finalizate șterse");
+  };
+
+  /* ==================== FILTER ACTIONS ==================== */
+  window.tdSetStatus=function(v){ fStatus=v; renderAll(); };
+  window.tdSetPrio=function(v){ fPrio=v; renderAll(); };
+  window.tdSetList=function(v){ fList=v; renderAll(); };
+  window.tdSearch=function(v){ fQuery=(v||"").toLowerCase(); renderList(); };
+
+  function filtered(){
+    return (window.todos||[]).filter(function(t){
+      if(fStatus==="active" && t.done) return false;
+      if(fStatus==="done" && !t.done) return false;
+      if(fPrio && (t.priority||"normal")!==fPrio) return false;
+      if(fList && (t.list||"")!==fList) return false;
+      if(fQuery){ var hay=[t.text,t.notes,t.list].map(function(x){return String(x||"").toLowerCase();}).join(" "); if(hay.indexOf(fQuery)<0)return false; }
+      return true;
+    });
+  }
+  function sortTodos(arr){
+    return arr.slice().sort(function(a,b){
+      /* due first (urgent by date), then priority, then seq (newest first) */
+      var da=daysTo(a.due), db=daysTo(b.due);
+      var va=(da==null)?999999:da, vb=(db==null)?999999:db;
+      if(va!==vb) return va-vb;
+      var pr=prioRank(a.priority)-prioRank(b.priority); if(pr!==0)return pr;
+      return (b._seq||0)-(a._seq||0);
+    });
+  }
+
+  /* ==================== RENDER ==================== */
+  function dueTag(t){
+    var d=daysTo(t.due); if(d==null) return "";
+    var cls="due", txt;
+    if(d<0){ cls+=" over"; txt="restant "+Math.abs(d)+"z"; }
+    else if(d===0){ cls+=" over"; txt="azi"; }
+    else if(d===1){ cls+=" soon"; txt="mâine"; }
+    else if(d<=3){ cls+=" soon"; txt="în "+d+"z"; }
+    else txt="în "+d+"z";
+    return '<span class="td-tag '+cls+'">📅 '+esc(dmy(toISOd(t.due)))+' · '+txt+'</span>';
+  }
+  function itemHTML(t,draggable){
+    var pr=t.priority||"normal";
+    var meta=dueTag(t)+(t.list?'<span class="td-tag list">🏷️ '+esc(t.list)+'</span>':'');
+    return '<div class="td-item'+(t.done?" done":"")+'" data-id="'+t.id+'" '+(draggable?'draggable="true"':'')+'>'
+      + (draggable?'<span class="td-handle">⠿</span>':'')
+      + '<span class="td-prio '+pr+'"></span>'
+      + '<div class="td-box" onclick="tdToggle(\''+t.id+'\')">'+(t.done?"✓":"")+'</div>'
+      + '<div class="td-main">'
+      +   '<div class="td-text">'+esc(t.text||"(fără text)")+'</div>'
+      +   (meta?'<div class="td-meta">'+meta+'</div>':'')
+      +   (t.notes?'<div class="td-note">“'+esc(t.notes)+'”</div>':'')
+      + '</div>'
+      + '<div class="td-btns"><button title="Editează" onclick="tdOpenModal(\''+t.id+'\')">✏️</button>'
+      +   '<button class="td-del" title="Șterge" onclick="tdDelete(\''+t.id+'\',event)">🗑</button></div>'
+      + '</div>';
+  }
+  function renderList(){
+    var host=$("todoList"); if(!host) return;
+    var list=sortTodos(filtered());
+    if(!list.length){
+      host.innerHTML='<div class="td-empty"><div style="font-size:44px">✅</div><p><b>Nicio sarcină'+(fStatus==="active"?" activă":"")+'</b></p><p>Scrie o sarcină sus și apasă Enter, sau apasă „＋ Detaliat".</p></div>';
+      return;
+    }
+    var active=list.filter(function(t){return !t.done;});
+    var done=list.filter(function(t){return t.done;});
+    var canDrag=(fStatus!=="done" && !fQuery && !fPrio && !fList);
+    var html=active.map(function(t){return itemHTML(t,canDrag);}).join("");
+    if(done.length){ html+='<div class="td-sep">Finalizate ('+done.length+')</div>'+done.map(function(t){return itemHTML(t,false);}).join(""); }
+    host.innerHTML=html;
+    if(canDrag) attachDnD();
+  }
+  function renderCount(){
+    var el=$("tdCount"); if(!el) return;
+    var all=(window.todos||[]);
+    var active=all.filter(function(t){return !t.done;}).length;
+    var done=all.filter(function(t){return t.done;}).length;
+    el.innerHTML='📝 '+active+' active · '+done+' finalizate';
+  }
+  function renderFilters(){
+    var host=$("todoFilters"); if(!host) return;
+    var st=[["active","Active"],["done","Finalizate"],["all","Toate"]].map(function(o){
+      return '<button class="td-chip'+(fStatus===o[0]?" sel":"")+'" onclick="tdSetStatus(\''+o[0]+'\')">'+o[1]+'</button>'; }).join("");
+    var pr=[["","Toate"]].concat(PRIOS).map(function(o){
+      return '<button class="td-chip'+(fPrio===o[0]?" sel":"")+'" onclick="tdSetPrio(\''+o[0]+'\')">'+o[1]+'</button>'; }).join("");
+    var ls=lists();
+    var lsHtml = ls.length ? ('<button class="td-chip'+(fList===""?" sel":"")+'" onclick="tdSetList(\'\')">Toate</button>'
+        + ls.map(function(l){ return '<button class="td-chip'+(fList===l?" sel":"")+'" onclick="tdSetList(\''+esA(l)+'\')">🏷️ '+esc(l)+'</button>'; }).join(''))
+      : '<span style="font-size:12px;color:var(--muted)">— fără liste —</span>';
+    host.innerHTML=
+        '<div class="td-frow"><span class="td-flabel">Status</span>'+st
+      +   '<div class="td-search" style="margin-left:auto">🔎<input placeholder="Caută sarcini..." value="'+esc(fQuery)+'" oninput="tdSearch(this.value)"></div></div>'
+      + '<div class="td-frow"><span class="td-flabel">Prioritate</span>'+pr+'</div>'
+      + '<div class="td-frow"><span class="td-flabel">Listă</span>'+lsHtml+'</div>';
+  }
+  function renderAll(){ renderFilters(); renderCount(); renderList(); }
+
+  /* ==================== DRAG & DROP ==================== */
+  function attachDnD(){
+    var host=$("todoList"); if(!host) return;
+    host.querySelectorAll('.td-item[draggable="true"]').forEach(function(el){
+      el.addEventListener("dragstart",function(e){ dragId=el.dataset.id; el.classList.add("dragging"); e.dataTransfer.effectAllowed="move"; try{e.dataTransfer.setData("text/plain","");}catch(_){} });
+      el.addEventListener("dragend",function(){ el.classList.remove("dragging"); host.querySelectorAll(".td-item").forEach(function(x){x.classList.remove("dragover");}); dragId=null; });
+      el.addEventListener("dragover",function(e){ e.preventDefault(); if(!dragId||el.dataset.id===dragId)return; el.classList.add("dragover"); });
+      el.addEventListener("dragleave",function(){ el.classList.remove("dragover"); });
+      el.addEventListener("drop",function(e){ e.preventDefault(); el.classList.remove("dragover"); reorder(dragId,el.dataset.id); });
+    });
+  }
+  function reorder(fromId,toId){
+    if(!fromId||fromId===toId) return;
+    var arr=window.todos||[];
+    var fi=arr.findIndex(function(x){return x.id===fromId;}); if(fi<0)return;
+    var moved=arr.splice(fi,1)[0];
+    var ti=arr.findIndex(function(x){return x.id===toId;});
+    arr.splice(ti<0?arr.length:ti,0,moved);
+    /* reindex _seq so manual order persists (higher = earlier) */
+    var base=Date.now();
+    arr.forEach(function(t,k){ t._seq=base-k; });
+    persist(); renderList();
+  }
+
+  /* ==================== MODAL ==================== */
+  function ensureModal(){
+    if($("todoModal")) return;
+    var m=document.createElement("div"); m.className="modal-overlay"; m.id="todoModal";
+    m.setAttribute("onclick","if(event.target===this)tdCloseModal()");
+    m.innerHTML=''
+      + '<div class="modal">'
+      +   '<div class="modal-head"><h2 id="tdModalTitle">Sarcină</h2><button class="x" onclick="tdCloseModal()">✕</button></div>'
+      +   '<div class="modal-body"><div class="mform">'
+      +     '<div class="mfld full"><label>Sarcină</label><input id="tdText" placeholder="Ce ai de făcut?"></div>'
+      +     '<div class="mfld full"><label>Prioritate</label><div class="td-seg" id="tdPrioSeg">'
+      +       '<button type="button" data-v="urgent" onclick="tdSeg(\'urgent\')">🔴 Urgent</button>'
+      +       '<button type="button" data-v="normal" class="on normal" onclick="tdSeg(\'normal\')">🟡 Normal</button>'
+      +       '<button type="button" data-v="low" onclick="tdSeg(\'low\')">⚪ Scăzut</button></div></div>'
+      +     '<div class="mfld"><label>Termen (deadline)</label><input type="date" id="tdDue"></div>'
+      +     '<div class="mfld"><label>Listă / categorie</label><input id="tdListInput" placeholder="ex: Muncă, Casă" list="tdListsDL"><datalist id="tdListsDL"></datalist></div>'
+      +     '<div class="mfld full"><label>Note</label><textarea id="tdNotes" rows="2" placeholder="detalii opționale..."></textarea></div>'
+      +   '</div></div>'
+      +   '<div class="modal-foot"><button class="mdel" id="tdDelBtn" onclick="tdDeleteFromModal()" style="display:none">🗑 Șterge</button><div class="rightgrp"><button onclick="tdCloseModal()">Anulează</button><button class="primary" onclick="tdSaveModal()">✓ Salvează</button></div></div>'
+      + '</div>';
+    document.body.appendChild(m);
+  }
+  function fillListsDL(){ var dl=$("tdListsDL"); if(dl)dl.innerHTML=lists().map(function(l){return '<option value="'+esc(l)+'">';}).join(""); }
+  window.tdSeg=function(v){ segPrio=v; var seg=$("tdPrioSeg"); if(seg)seg.querySelectorAll("button").forEach(function(b){ b.className=(b.dataset.v===v)?("on "+v):""; }); };
+  window.tdOpenAdd=function(){
+    ensureModal(); editId=null; segPrio="normal";
+    $("tdModalTitle").textContent="Adaugă sarcină"; $("tdDelBtn").style.display="none";
+    $("tdText").value=""; $("tdDue").value=""; $("tdListInput").value=""; $("tdNotes").value="";
+    tdSeg("normal"); fillListsDL();
+    $("todoModal").classList.add("open"); setTimeout(function(){$("tdText").focus();},80);
+  };
+  window.tdOpenModal=function(id){
+    ensureModal();
+    var t=(window.todos||[]).find(function(x){return x.id===id;}); if(!t)return;
+    editId=id; segPrio=t.priority||"normal";
+    $("tdModalTitle").textContent="Editează sarcina"; $("tdDelBtn").style.display="";
+    $("tdText").value=t.text||""; $("tdDue").value=toISOd(t.due)||""; $("tdListInput").value=t.list||""; $("tdNotes").value=t.notes||"";
+    tdSeg(segPrio); fillListsDL();
+    $("todoModal").classList.add("open");
+  };
+  window.tdCloseModal=function(){ var m=$("todoModal"); if(m)m.classList.remove("open"); editId=null; };
+  window.tdSaveModal=function(){
+    var text=$("tdText").value.trim();
+    if(!text){ if(typeof toast==="function")toast("Scrie textul sarcinii."); return; }
+    ensureArr();
+    if(editId){
+      var t=window.todos.find(function(x){return x.id===editId;}); if(t){ t.text=text; t.priority=segPrio; t.due=toISOd($("tdDue").value)||""; t.list=$("tdListInput").value.trim(); t.notes=$("tdNotes").value.trim(); }
+    } else {
+      window.todos.unshift({ id:uid(), text:text, done:false, priority:segPrio, due:toISOd($("tdDue").value)||"", list:$("tdListInput").value.trim(), notes:$("tdNotes").value.trim(), doneAt:null, _seq:Date.now() });
+    }
+    persist(); tdCloseModal(); renderAll();
+    if(typeof toast==="function")toast(editId?"Sarcină actualizată":"Sarcină adăugată");
+  };
+  window.tdDeleteFromModal=function(){ if(!editId)return; if(!confirm("Ștergi această sarcină?"))return; window.todos=(window.todos||[]).filter(function(x){return x.id!==editId;}); persist(); tdCloseModal(); renderAll(); if(typeof toast==="function")toast("Sarcină ștearsă"); };
+
+  /* ==================== EXPORT ==================== */
+  function stamp(){ return new Date().toISOString().slice(0,10); }
+  function dl(name,text,type){ try{ var b=new Blob([text],{type:type}); var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download=name; a.click(); URL.revokeObjectURL(u); }catch(e){} }
+  window.tdExportJSON=function(){ dl("todo_"+stamp()+".json", JSON.stringify({app:"Todo",exportedAt:new Date().toISOString(),todos:(window.todos||[])},null,2), "application/json"); if(typeof toast==="function")toast("⬇️ To-Do exportat (JSON)"); };
+  function cc(v){ var s=(v==null)?"":String(v); if(typeof v==="boolean")s=v?"true":"false"; if(/[",\n;]/.test(s))s='"'+s.replace(/"/g,'""')+'"'; return s; }
+  window.tdExportCSV=function(){
+    var cols=["Sarcina","Prioritate","Termen","Lista","Status","Note"];
+    var lines=(window.todos||[]).map(function(t){ return [t.text,prioLabel(t.priority).replace(/^[^ ]+ /,""),(t.due?dmy(toISOd(t.due)):""),t.list,(t.done?"Finalizat":"Activ"),t.notes].map(cc).join(","); });
+    dl("todo_"+stamp()+".csv", cols.join(",")+"\n"+lines.join("\n"), "text/csv");
+    if(typeof toast==="function")toast("⬇️ To-Do exportat (CSV)");
+  };
+
+  /* ==================== HOME REMINDER ==================== */
+  window.collectTodoAlerts=function(){
+    var out=[];
+    (window.todos||[]).forEach(function(t){ if(t.done||!t.due)return; var d=daysTo(t.due); if(d==null||d>7)return; out.push({id:t.id,text:t.text||"(fără text)",days:d,priority:t.priority||"normal"}); });
+    /* also include urgent without due */
+    (window.todos||[]).forEach(function(t){ if(t.done||t.due||t.priority!=="urgent")return; out.push({id:t.id,text:t.text||"(fără text)",days:9999,priority:"urgent"}); });
+    out.sort(function(a,b){ return a.days-b.days; });
+    return out;
+  };
+  function injectHomeTile(){
+    try{
+      var page=$("pageHome"); if(!page)return; var home=page.querySelector(".home"); if(!home)return;
+      var old=$("tdHomeTile"); if(old)old.remove();
+      var al=window.collectTodoAlerts(); if(!al.length)return;
+      var tile=document.createElement("div"); tile.className="htile"; tile.id="tdHomeTile";
+      var rows=al.slice(0,6).map(function(a){
+        var pin, col;
+        if(a.days>=9999){ pin="urgent"; col="var(--red)"; }
+        else if(a.days<0){ pin="restant "+Math.abs(a.days)+"z"; col="var(--red)"; }
+        else if(a.days===0){ pin="azi"; col="var(--red)"; }
+        else if(a.days===1){ pin="mâine"; col="var(--amber)"; }
+        else { pin="în "+a.days+"z"; col=(a.days<=3?"var(--amber)":"var(--accent)"); }
+        return '<div class="td-al" onclick="showPage(\'todo\')" title="Deschide To-Do"><span class="td-al-dot '+a.priority+'"></span><span class="td-al-tx">'+esc(a.text)+'</span><span class="pin" style="color:'+col+';background:color-mix(in srgb,'+col+' 16%,transparent)">'+pin+'</span></div>';
+      }).join("");
+      tile.innerHTML='<h3>✅ Sarcini de făcut <span class="h3-act" onclick="showPage(\'todo\')">To-Do ›</span></h3>'+rows;
+      /* insert after birthdays tile if present, else at top of tiles */
+      var tiles=home.querySelectorAll(".htile"); var anchor=null;
+      tiles.forEach(function(t){ var h=t.querySelector("h3"); if(h&&/Scaden/i.test(h.textContent))anchor=t; });
+      if(anchor && anchor.nextSibling) home.insertBefore(tile, anchor.nextSibling);
+      else if(anchor) home.appendChild(tile);
+      else { var reload=home.querySelector(".home-reload"); if(reload)home.insertBefore(tile,reload); else home.appendChild(tile); }
+    }catch(e){ console.warn("todo home:",e); }
+  }
+
+  /* ==================== PAGE / NAV ==================== */
+  function injectPage(){
+    if($("pageTodo")) return;
+    var wrap=document.querySelector(".wrap"); if(!wrap) return;
+    var pageCharts=$("pageCharts");
+    var sec=document.createElement("section"); sec.className="page"; sec.id="pageTodo";
+    sec.innerHTML=''
+      + '<div class="td-head"><h2>✅ To-Do</h2><span class="td-count" id="tdCount">📝 0</span>'
+      +   '<div class="td-actions">'
+      +     '<button onclick="tdExportJSON()" title="Export JSON">⬇ JSON</button>'
+      +     '<button onclick="tdExportCSV()" title="Export CSV">⬇ CSV</button>'
+      +     '<button onclick="tdClearDone()" title="Șterge finalizate">🧹 Curăță</button>'
+      +     '<button class="primary" onclick="tdOpenAdd()">＋ Detaliat</button>'
+      +   '</div></div>'
+      + '<div class="td-add"><input id="tdInput" placeholder="Scrie o sarcină și apasă Enter..." onkeydown="if(event.key===\'Enter\')tdQuickAdd()"><button class="primary" onclick="tdQuickAdd()">＋ Adaugă</button></div>'
+      + '<div class="td-filters" id="todoFilters"></div>'
+      + '<div class="td-list" id="todoList"></div>';
+    if(pageCharts) wrap.insertBefore(sec, pageCharts); else wrap.appendChild(sec);
+  }
+  function openTodo(){ injectPage(); loadLocalIfEmpty(); renderAll(); setTimeout(function(){var i=$("tdInput"); if(i&&!(window.matchMedia&&window.matchMedia("(max-width:820px)").matches))i.focus();},60); }
+  window.todoRefresh=function(){ if($("pageTodo")&&$("pageTodo").classList.contains("active"))renderAll(); };
+
+  function wire(){
+    var _show=window.showPage;
+    window.showPage=function(p){
+      try{ _show(p); }catch(e){ console.warn(e); }
+      var pe=$("pageTodo"); if(pe)pe.classList.toggle("active",p==="todo");
+      var te=$("tabTodo"); if(te)te.classList.toggle("active",p==="todo");
+      if(p==="todo") openTodo();
+      if(p==="home") setTimeout(injectHomeTile,0);
+    };
+    var _render=window.render;
+    if(typeof _render==="function"){ window.render=function(){ try{_render();}catch(e){console.warn(e);} var ph=$("pageHome"); if(ph&&ph.classList.contains("active"))setTimeout(injectHomeTile,0); }; }
+  }
+  function init(){ try{ ensureArr(); injectPage(); wire(); var ph=$("pageHome"); if(ph&&ph.classList.contains("active"))setTimeout(injectHomeTile,120); }catch(e){ console.warn("todo init:",e); } }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",function(){ setTimeout(init,300); });
+  else setTimeout(init,300);
 })();
 </script>
 </body>
