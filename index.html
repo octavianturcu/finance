@@ -1360,6 +1360,12 @@ html[data-theme="night"] .tv-label span, html[data-theme="grape"] .tv-label span
 .tv-selrm:hover{ transform:scale(1.18); }
 .tv-selname{ position:absolute;left:0;right:0;bottom:0;padding:8px 4px 3px;font-size:9.5px;font-weight:700;color:#fff;text-align:center;background:linear-gradient(transparent,rgba(0,0,0,.75));opacity:0;transform:translateY(4px);transition:.15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
 .tv-selphoto:hover .tv-selname{ opacity:1;transform:translateY(0); }
+/* ── PAGINATIE ── */
+.tv-pager{ display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-top:16px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow); }
+.tv-pg-info{ font-size:12.5px;color:var(--muted); }
+.tv-pg-ctrl{ display:flex;align-items:center;gap:6px; }
+.tv-pg-ctrl button{ padding:7px 12px;border-radius:9px; }
+.tv-pg-n{ font-size:13px;color:var(--muted);padding:0 6px;font-variant-numeric:tabular-nums; }
 /* ── STATISTICI ── */
 #travelStats{ margin-top:26px; }
 .tv-stats-head{ display:flex;align-items:center;gap:10px;margin-bottom:14px; }
@@ -1374,11 +1380,10 @@ html[data-theme="night"] .tv-label span, html[data-theme="grape"] .tv-label span
 .tv-stats-2col{ display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px; }
 .tv-stats-card{ background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow); }
 .tv-stats-ct{ font-size:13px;font-weight:800;margin-bottom:12px;letter-spacing:-.01em; }
-.tv-stat-barwrap{ margin-bottom:14px; }
-.tv-stat-barwrap:last-child{ margin-bottom:0; }
+.tv-stat-barwrap{ margin-bottom:14px; } .tv-stat-barwrap:last-child{ margin-bottom:0; }
 .tv-stat-bt{ font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px; }
 .tv-sb-track{ display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--panel2);border:1px solid var(--line); }
-.tv-sb-a,.tv-sb-b{ height:100%;transition:width .4s var(--ease); }
+.tv-sb-track>div{ height:100%;transition:width .4s var(--ease); }
 .tv-sb-legend{ display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-size:11.5px;color:var(--muted);flex-wrap:wrap; }
 .tv-sb-legend i{ display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:middle; }
 .tv-sb-legend b{ color:var(--txt);font-variant-numeric:tabular-nums; }
@@ -1386,6 +1391,14 @@ html[data-theme="night"] .tv-label span, html[data-theme="grape"] .tv-label span
 .tv-krow:last-child{ border-bottom:none; }
 .tv-krow span{ color:var(--muted); }
 .tv-krow b{ font-weight:800;font-variant-numeric:tabular-nums;text-align:right; }
+/* ── MOBIL: 2 tiles pe rand ── */
+@media (max-width:820px){
+  .tv-grid{ grid-template-columns:1fr 1fr !important;gap:10px; }
+  .tv-card .tv-photo{ height:104px; }
+  .tv-card .tv-name{ font-size:14px; }
+  .tv-card .tv-body{ padding:10px 11px;gap:5px; }
+  .tv-stats-grid{ grid-template-columns:1fr 1fr; }
+}
 /* nume la hover peste avatarurile mici din carduri */
 .tv-ava{ position:relative; }
 /* ── mini-tab Travel în profilul persoanei ── */
@@ -1906,13 +1919,13 @@ function renderBudgetEditor(){const host=document.getElementById("budgetEditor")
 function budgetOverruns(){const spent=spentThisMonthByCat();const out=[];Object.keys(catBudgets).forEach(cat=>{const b=catBudgets[cat];const sp=spent[cat]||0;if(b&&sp>b)out.push({cat,spent:sp,budget:b,over:sp-b});});return out;}
 function renderBudgetAlerts(){const host=document.getElementById("budgetAlerts");if(!host)return;const ov=budgetOverruns();if(!ov.length){host.innerHTML="";return;}host.innerHTML=`<div style="background:color-mix(in srgb,var(--red) 12%,transparent);border:1px solid color-mix(in srgb,var(--red) 40%,var(--line));border-radius:12px;padding:12px 14px;margin-bottom:14px;font-size:13px"><b style="color:var(--red)">⚠️ Buget depășit luna aceasta:</b> `+ov.map(o=>`${esc(o.cat)} (<b>${fmtMoney(toDisplay(o.spent),false)}</b> / ${fmtMoney(toDisplay(o.budget),false)} ${settings.displayCurrency}, +${fmtMoney(toDisplay(o.over),false)})`).join(" &nbsp;•&nbsp; ")+`</div>`;}
 /* ============ MAȘINI ============ */
-function newCar(name){return {id:uid(),name:name||"Mașină",icon:"🚗",photo:"",vin:"",plate:"",itp:"",rovinieta:"",rca:"",_seq:Date.now()};}
+function newCar(name){return {id:uid(),name:name||"Mașină",icon:"🚗",photo:"",vin:"",plate:"",itp:"",rovinieta:"",rca:"",lastService:"",lastServiceKm:"",nextService:"",_seq:Date.now()};}
 function addCar(){const inp=document.getElementById("newCarName");const name=(inp.value||"").trim()||("Mașină "+(cars.length+1));cars.unshift(newCar(name));inp.value="";markDirty();scheduleBackup();renderCars();toast("Mașină adăugată");}
 function updCar(id,field,val){const c=cars.find(x=>x.id===id);if(!c)return;c[field]=val;markDirty();scheduleBackup();renderCarsAlerts();if(field!=="name"&&field!=="vin"&&field!=="plate"){const badge=document.querySelector(`#carbadge-${id}-${field}`);if(badge){const info=carDeadlineInfo(val);if(info){const col=info.days<0?"var(--red)":(info.days<=14?"var(--red)":(info.days<=30?"var(--amber)":"var(--green)"));badge.style.color=col;badge.textContent=info.days<0?("expirat "+Math.abs(info.days)+"z"):(info.days+"z");}else{badge.textContent="—";badge.style.color="var(--muted)";}}}}
 function delCar(id,ev){if(ev)ev.stopPropagation();const c=cars.find(x=>x.id===id);if(!c)return;if(!confirm(`Ștergi mașina „${c.name}"?`))return;cars=cars.filter(x=>x.id!==id);markDirty();scheduleBackup();renderCars();toast("Mașină ștearsă");}
 const CAR_DEADLINES=[{k:"itp",lbl:"ITP"},{k:"rovinieta",lbl:"Rovinietă"},{k:"rca",lbl:"RCA"}];
 function carDeadlineInfo(iso){const du=daysUntil(toISO(iso));if(isNaN(du))return null;let cls="ok";if(du<0)cls="expired";else if(du<=14)cls="soon";else if(du<=30)cls="warn";return {days:du,cls};}
-function collectCarAlerts(){const out=[];cars.forEach(c=>{CAR_DEADLINES.forEach(d=>{const info=carDeadlineInfo(c[d.k]);if(info&&info.days<=30)out.push({car:c.name,label:d.lbl,days:info.days,cls:info.cls,date:isoToDMY(toISO(c[d.k]))});});});out.sort((a,b)=>a.days-b.days);return out;}
+function collectCarAlerts(){const out=[];cars.forEach(c=>{CAR_DEADLINES.forEach(d=>{const info=carDeadlineInfo(c[d.k]);if(info&&info.days<=30)out.push({car:c.name,label:d.lbl,days:info.days,cls:info.cls,date:isoToDMY(toISO(c[d.k]))});});const sInfo=carDeadlineInfo(c.nextService);if(sInfo&&sInfo.days<14){out.push({car:c.name,label:"Revizie",days:sInfo.days,cls:(sInfo.days<0?"expired":"soon"),date:isoToDMY(toISO(c.nextService))});}});out.sort((a,b)=>a.days-b.days);return out;}
 function renderCarsAlerts(){const host=document.getElementById("carsAlerts");if(!host)return;const al=collectCarAlerts();if(!al.length){host.innerHTML="";return;}host.innerHTML=`<div style="background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 40%,var(--line));border-radius:12px;padding:12px 14px;margin-bottom:16px;font-size:13px"><b style="color:var(--amber)">🔔 Scadențe apropiate:</b><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">`+al.map(a=>{const c=(a.cls==="expired"||a.cls==="soon")?"var(--red)":"var(--amber)";const txt=a.days<0?("expirat de "+Math.abs(a.days)+"z"):(a.days===0?"expiră azi":("în "+a.days+"z"));return `<span style="background:var(--panel2);border:1px solid ${c};color:${c};border-radius:20px;padding:3px 10px;font-weight:600">${esc(a.car)} · ${a.label}: ${txt} (${a.date})</span>`;}).join("")+`</div></div>`;}
 function carDateField(c,d){const info=carDeadlineInfo(c[d.k]);let bcol="var(--muted)",btxt="—";if(info){bcol=info.days<0?"var(--red)":(info.days<=14?"var(--red)":(info.days<=30?"var(--amber)":"var(--green)"));btxt=info.days<0?("expirat "+Math.abs(info.days)+"z"):(info.days+"z");}
   return `<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:150px"><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:flex;justify-content:space-between;gap:6px">${d.lbl} <span id="carbadge-${c.id}-${d.k}" style="font-weight:800;font-size:11px;white-space:nowrap;color:${bcol}">${btxt}</span></label><input type="date" value="${escAttr(toISO(c[d.k]))}" onchange="updCar('${c.id}','${d.k}',this.value)" style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--txt);font-family:var(--font)"></div>`;}
@@ -1928,8 +1941,15 @@ function renderCars(){renderCarsAlerts();const grid=document.getElementById("car
         <div style="display:flex;flex-direction:column;gap:3px;flex:2;min-width:200px"><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Serie VIN</label><input value="${escAttr(c.vin)}" onchange="updCar('${c.id}','vin',this.value)" placeholder="WBA..." style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--txt);font-family:var(--font);letter-spacing:.5px"></div>
         <div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:150px"><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">Nr. înmatriculare</label><input value="${escAttr(c.plate)}" onchange="updCar('${c.id}','plate',this.value)" placeholder="B 123 ABC" style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--txt);font-family:var(--font)"></div>
       </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">${carServiceFields(c)}</div>
       <div style="display:flex;gap:12px;flex-wrap:wrap">${deadlines}</div>
     </div>`;}).join("");}
+function carServiceFields(c){
+  const sInfo=carDeadlineInfo(c.nextService);let bcol="var(--muted)",btxt="—";
+  if(sInfo){bcol=sInfo.days<0?"var(--red)":(sInfo.days<14?"var(--red)":(sInfo.days<=30?"var(--amber)":"var(--green)"));btxt=sInfo.days<0?("expirat "+Math.abs(sInfo.days)+"z"):(sInfo.days+"z");}
+  return `<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:150px"><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">🔧 Ultima revizie</label><input type="date" value="${escAttr(toISO(c.lastService))}" onchange="updCar('${c.id}','lastService',this.value)" style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--txt);font-family:var(--font)"></div>`
+    + `<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:130px"><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px">📏 Km la revizie</label><input type="number" inputmode="numeric" value="${escAttr(c.lastServiceKm||"")}" onchange="updCar('${c.id}','lastServiceKm',this.value)" placeholder="ex: 120000" style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--txt);font-family:var(--font)"></div>`
+    + `<div style="display:flex;flex-direction:column;gap:3px;flex:1;min-width:150px"><label style="font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;display:flex;justify-content:space-between;gap:6px">🗓️ Următoarea revizie <span id="carbadge-${c.id}-nextService" style="font-weight:800;font-size:11px;white-space:nowrap;color:${bcol}">${btxt}</span></label><input type="date" value="${escAttr(toISO(c.nextService))}" onchange="updCar('${c.id}','nextService',this.value)" style="background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--txt);font-family:var(--font)"></div>`;}
 let carIconTarget=null;
 function openCarIcon(ev,id){ev.stopPropagation();carIconTarget=id;const pop=document.getElementById("emojiPop");pop.innerHTML=CAR_ICONS.map(e=>`<button onclick="pickCarIcon('${e}')">${e}</button>`).join("");const r=ev.currentTarget.getBoundingClientRect();pop.style.left=Math.min(r.left,window.innerWidth-360)+"px";pop.style.top=(r.bottom+6)+"px";pop.classList.add("open");}
 let carPhotoTarget=null;
@@ -2346,7 +2366,7 @@ async function integrityCheck(){
    - cars/lists/list_items/app_config: neschimbate (aveau deja coloane reale).
    =================================================================== */
 const cloud={cfg:null,client:null,session:null};
-const dl={ready:false,shadow:{},loading:false,saving:false,pending:false,saveT:null,loadedForUser:null,loggingIn:false,hasTagsColumn:false,hasPeopleTable:false,hasCarPhotoColumn:false,hasPeopleSocial:false};
+const dl={ready:false,shadow:{},loading:false,saving:false,pending:false,saveT:null,loadedForUser:null,loggingIn:false,hasTagsColumn:false,hasPeopleTable:false,hasCarPhotoColumn:false,hasCarService:false,hasPeopleSocial:false};
 
 function canon(v){if(v===null||typeof v!=="object")return JSON.stringify(v);if(Array.isArray(v))return "["+v.map(canon).join(",")+"]";return "{"+Object.keys(v).sort().map(k=>JSON.stringify(k)+":"+canon(v[k])).join(",")+"}";}
 
@@ -2425,7 +2445,7 @@ function dlSnapshot(){
   const m={};
   /* TRANZACȚII pe COLOANE REALE (nu blob) */
   rows.forEach(r=>{if(!r.id)r.id=uid();const trow={data:toISO(r.Data)||null,status:r.Status||null,categ:r.Categ||null,type:r.Type||null,amount:txAmountNum(r.Amount),info:(r.Info||null),asset:!!r.Asset,disposable:!!r.Disposable,spike:!!r.Spike,seq:(r._seq==null?null:r._seq)};if(dl.hasTagsColumn)trow.tags=normTags(r.Tags)||null;m["transactions:"+r.id]={table:"transactions",id:r.id,row:trow};});
-  cars.forEach(c=>{if(!c.id)c.id=uid();const dOrNull=v=>{const iso=toISO(v);return iso?iso:null;};const crow={name:c.name||null,icon:c.icon||null,vin:c.vin||null,plate:c.plate||null,itp:dOrNull(c.itp),rovinieta:dOrNull(c.rovinieta),rca:dOrNull(c.rca),seq:c._seq};if(dl.hasCarPhotoColumn)crow.photo=c.photo||null;m["cars:"+c.id]={table:"cars",id:c.id,row:crow};});
+  cars.forEach(c=>{if(!c.id)c.id=uid();const dOrNull=v=>{const iso=toISO(v);return iso?iso:null;};const crow={name:c.name||null,icon:c.icon||null,vin:c.vin||null,plate:c.plate||null,itp:dOrNull(c.itp),rovinieta:dOrNull(c.rovinieta),rca:dOrNull(c.rca),seq:c._seq};if(dl.hasCarPhotoColumn)crow.photo=c.photo||null;if(dl.hasCarService){crow.last_service=dOrNull(c.lastService);crow.last_service_km=((c.lastServiceKm===""||c.lastServiceKm==null)?null:(parseInt(c.lastServiceKm,10)||null));crow.next_service=dOrNull(c.nextService);}m["cars:"+c.id]={table:"cars",id:c.id,row:crow};});
   if(dl.hasPeopleTable){people.forEach(p=>{if(!p.id)p.id=uid();const dON=v=>{const iso=toISO(v);return iso?iso:null;};const prow={name:p.name||null,relation:p.relation||null,birthday:dON(p.birthday),children:p.children||null,spouse:p.spouse||null,hobbies:p.hobbies||null,last_contact:dON(p.lastContact),photo:p.photo||null,notes:p.notes||null,seq:p._seq};if(dl.hasPeopleSocial){prow.instagram=p.instagram||null;prow.facebook=p.facebook||null;}m["people:"+p.id]={table:"people",id:p.id,row:prow};});}
   shoppingLists.forEach(l=>{if(!l.id)l.id=uid();m["lists:"+l.id]={table:"lists",id:l.id,row:{name:l.name||null,icon:l.icon||null,created:toTs(l.created)}};(l.items||[]).forEach(it=>{if(!it.id)it.id=uid();m["list_items:"+it.id]={table:"list_items",id:it.id,row:{list_id:l.id,text:it.text||null,qty:(it.qty==null?null:String(it.qty)),done:!!it.done,done_at:toTs(it.doneAt),created:toTs(it.created)}};});});
   m["app_config:main"]={table:"app_config",id:"main",row:{categories:CATEGORIES,settings:{baseCurrency:settings.baseCurrency,displayCurrency:settings.displayCurrency,rate:settings.rate,rateDate:settings.rateDate,rateSource:settings.rateSource},cat_budgets:catBudgets,rec_status:recStatus,backups:backups}};
@@ -2455,6 +2475,7 @@ async function dlInitialLoad(force){
     try{const _p=await cloud.client.from("transactions").select("tags").limit(1);dl.hasTagsColumn=!_p.error;}catch(_e){dl.hasTagsColumn=false;}
     try{const _pp=await cloud.client.from("people").select("id").limit(1);dl.hasPeopleTable=!_pp.error;}catch(_e){dl.hasPeopleTable=false;}
     try{const _cp=await cloud.client.from("cars").select("photo").limit(1);dl.hasCarPhotoColumn=!_cp.error;}catch(_e){dl.hasCarPhotoColumn=false;}
+    try{const _cs=await cloud.client.from("cars").select("next_service").limit(1);dl.hasCarService=!_cs.error;}catch(_e){dl.hasCarService=false;}
     try{const _ps=await cloud.client.from("people").select("instagram").limit(1);dl.hasPeopleSocial=!_ps.error;}catch(_e){dl.hasPeopleSocial=false;}
     console.log("[load] coloana tags:",dl.hasTagsColumn);
     const tx=await dlLoadAll("transactions","*");
@@ -2468,7 +2489,7 @@ async function dlInitialLoad(force){
     rows=(tx||[]).map(r=>{const o={id:r.id,Data:toISO(r.data),Status:r.status||"",Categ:r.categ||"",Type:r.type||"",Amount:(r.amount==null?"":String(r.amount)),Info:r.info||"",Tags:(r.tags||""),Asset:!!r.asset,Disposable:!!r.disposable,Spike:!!r.spike,_seq:(r.seq==null?0:r.seq)};o["+/-"]=plusMinus(o.Amount);o.Reccurent=recurrent(o.Type);return o;});
     const serverCount=rows.length;
     if(!rows.length)rows=[newRow()];
-    cars=(cr||[]).map(r=>({id:r.id,name:r.name,icon:r.icon,photo:r.photo||"",vin:r.vin,plate:r.plate,itp:r.itp,rovinieta:r.rovinieta,rca:r.rca,_seq:r.seq}));
+    cars=(cr||[]).map(r=>({id:r.id,name:r.name,icon:r.icon,photo:r.photo||"",vin:r.vin,plate:r.plate,itp:r.itp,rovinieta:r.rovinieta,rca:r.rca,lastService:r.last_service||"",lastServiceKm:(r.last_service_km==null?"":String(r.last_service_km)),nextService:r.next_service||"",_seq:r.seq}));
     let peData=[]; if(dl.hasPeopleTable){ try{ peData=await dlLoadAll("people","*"); }catch(e){ dl.hasPeopleTable=false; console.warn("people load:",e); } }
     people=(peData||[]).map(r=>({id:r.id,name:r.name||"",relation:r.relation||"prieteni",birthday:r.birthday||"",children:r.children||"",spouse:r.spouse||"",hobbies:r.hobbies||"",lastContact:r.last_contact||"",photo:r.photo||"",notes:r.notes||"",instagram:r.instagram||"",facebook:r.facebook||"",_seq:r.seq}));
     const lmap={};(ls||[]).forEach(r=>{lmap[r.id]={id:r.id,name:r.name,icon:r.icon,created:fromTs(r.created),items:[]};});
@@ -3187,6 +3208,7 @@ load();
   window.tvAutoPhoto = window.tvAutoPhoto || {};   /* cache: "name|country" -> url|null */
   var inflight={};
   var fYear="", fCountry="", fStatus="", fPurpose="", fPeople=new Set();
+  var tvPage=0, TV_PER=10;
 
   function $(id){ return document.getElementById(id); }
   function esc(v){ return (v==null?"":String(v)).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
@@ -3274,7 +3296,7 @@ load();
                      status:x.status||"visited", purpose:x.purpose||"travel", travel_mode:x.travel_mode||"plane",
                      start_date:x.start_date||"", end_date:x.end_date||"", year:x.year||null,
                      people:Array.isArray(x.people)?x.people:(x.people?JSON.parse(x.people):[]),
-                     notes:x.notes||"", photo:x.photo||"", km:(x.distance_km!=null?x.distance_km:haversine(x.lat,x.lng)), seq:x.seq };
+                     notes:x.notes||"", photo:x.photo||"", km:(x.distance_km!=null?x.distance_km:haversine(x.lat,x.lng)), flights:(x.flights||0), seq:x.seq };
           });
           return;
         }
@@ -3302,7 +3324,7 @@ load();
              status:p.status||null, purpose:p.purpose||null, travel_mode:p.travel_mode||null,
              start_date:p.start_date||null, end_date:p.end_date||null, year:(p.year||null),
              people:p.people||[], notes:p.notes||null, photo:p.photo||null,
-             distance_km:(p.km!=null?Math.round(p.km):null), seq:p.seq };
+             distance_km:(p.km!=null?Math.round(p.km):null), flights:(p.flights||0), seq:p.seq };
   }
   /* Upsert robust: încearcă onConflict user_id,id → fallback pe id (dacă lipsește
      constrângerea compusă). Returnează {ok, error} pentru diagnostic vizibil. */
@@ -3475,7 +3497,8 @@ load();
       : '<span style="font-size:12px;color:var(--muted)">— nicio persoană asociată încă —</span>';
     host.innerHTML=
         '<div class="tv-frow"><span class="tv-flabel">An</span><button class="tv-chip'+(fYear===""?" sel":"")+'" onclick="tvSetYear(\'\')">Toți</button>'+yHtml+'</div>'
-      + '<div class="tv-frow"><span class="tv-flabel">Țară</span>'+cHtml+'<span class="tv-flabel" style="margin-left:8px">Status</span>'+stHtml+'</div>'
+      + '<div class="tv-frow"><span class="tv-flabel">Țară</span>'+cHtml+'</div>'
+      + '<div class="tv-frow"><span class="tv-flabel">Status</span>'+stHtml+'</div>'
       + '<div class="tv-frow"><span class="tv-flabel">Scop</span>'+puHtml+'</div>'
       + '<div class="tv-frow"><span class="tv-flabel">Persoane</span>'+pHtml+'</div>';
   }
@@ -3512,14 +3535,33 @@ load();
       + (p.notes?'<div class="tv-pop-meta" style="margin-top:5px;font-style:italic">“'+esc(p.notes)+'”</div>':'')
       + '</div>';
   }
+  window.tvGoPage=function(n){ tvPage=n; renderCards(); try{ $("travelGrid").scrollIntoView({behavior:"smooth",block:"start"}); }catch(e){} };
+  function renderPager(total){
+    var host=$("travelPager"); if(!host) return;
+    var pages=Math.max(1,Math.ceil(total/TV_PER));
+    if(pages<=1){ host.innerHTML=""; return; }
+    var from=tvPage*TV_PER+1, to=Math.min(total,(tvPage+1)*TV_PER);
+    host.innerHTML='<div class="tv-pager">'
+      + '<span class="tv-pg-info">'+from+'–'+to+' din '+total+'</span>'
+      + '<div class="tv-pg-ctrl">'
+      +   '<button '+(tvPage<=0?"disabled":"")+' onclick="tvGoPage(0)">«</button>'
+      +   '<button '+(tvPage<=0?"disabled":"")+' onclick="tvGoPage('+(tvPage-1)+')">‹</button>'
+      +   '<span class="tv-pg-n">'+(tvPage+1)+' / '+pages+'</span>'
+      +   '<button '+(tvPage>=pages-1?"disabled":"")+' onclick="tvGoPage('+(tvPage+1)+')">›</button>'
+      +   '<button '+(tvPage>=pages-1?"disabled":"")+' onclick="tvGoPage('+(pages-1)+')">»</button>'
+      + '</div></div>';
+  }
   function renderCards(){
     var grid=$("travelGrid"); if(!grid) return;
     var list=filtered().slice().sort(function(a,b){ return String(b.start_date||b.year||"").localeCompare(String(a.start_date||a.year||"")); });
-    if(!list.length){ grid.innerHTML='<div class="tv-empty"><div style="font-size:44px">🌍</div><p><b>Nicio locație încă</b></p><p>Apasă <b>＋ Adaugă locație</b> ca să pui prima ta călătorie pe hartă.</p></div>'; return; }
-    grid.innerHTML=list.map(function(p){
+    if(!list.length){ grid.innerHTML='<div class="tv-empty"><div style="font-size:44px">🌍</div><p><b>Nicio locație încă</b></p><p>Apasă <b>＋ Adaugă locație</b> ca să pui prima ta călătorie pe hartă.</p></div>'; renderPager(0); return; }
+    var pages=Math.max(1,Math.ceil(list.length/TV_PER)); if(tvPage>=pages)tvPage=pages-1; if(tvPage<0)tvPage=0;
+    var pageList=list.slice(tvPage*TV_PER,(tvPage+1)*TV_PER);
+    renderPager(list.length);
+    grid.innerHTML=pageList.map(function(p){
       var per=(p.people||[]).map(personById).filter(Boolean);
       var avas=per.slice(0,5).map(avaHtml).join("")+(per.length>5?'<span class="tv-ava" title="'+esc(per.slice(5).map(function(x){return x.name;}).join(", "))+'">+'+(per.length-5)+'</span>':"");
-      var mode=p.travel_mode==="car"?"🚗 Mașină":"✈️ Avion";
+      var mode=p.travel_mode==="car"?"🚗 Mașină":("✈️ Avion"+((p.flights||0)>1?" · "+p.flights+" zboruri":""));
       var purp=p.purpose==="work"?"💼 Work":"🌴 Travel";
       var dp=displayPhoto(p);
       var photo=(dp&&dp.url)?('<img src="'+dp.url+'" alt="">'+(dp.auto?'<span class="tv-auto">📷 auto</span>':'')):"🗺️";
@@ -3543,57 +3585,48 @@ load();
     ensureAuto(filtered(), function(){ renderCards(); if(map){ renderMap(); } });
   }
   /* ==================== STATISTICI ==================== */
+  function hasActiveFilter(){ return !!(fYear||fCountry||fStatus||fPurpose||fPeople.size); }
   function renderStats(){
     var host=$("travelStats"); if(!host) return;
     var list=filtered();
     var visited=list.filter(function(p){return p.status==="visited";});
     var wish=list.filter(function(p){return p.status==="wishlist";});
     if(!list.length){ host.innerHTML=""; return; }
-
-    /* tipuri */
     var byPlane=visited.filter(function(p){return p.travel_mode!=="car";});
     var byCar  =visited.filter(function(p){return p.travel_mode==="car";});
     var work   =visited.filter(function(p){return (p.purpose||"travel")==="work";});
     var trav   =visited.filter(function(p){return (p.purpose||"travel")!=="work";});
-    /* km */
+    var flightsTot=byPlane.reduce(function(s,p){return s+Math.max(1,(p.flights||1));},0);
     var kmTot=visited.reduce(function(s,p){return s+(p.km||0);},0);
     var kmPlane=byPlane.reduce(function(s,p){return s+(p.km||0);},0);
     var kmCar=byCar.reduce(function(s,p){return s+(p.km||0);},0);
     var kmWork=work.reduce(function(s,p){return s+(p.km||0);},0);
     var kmTravel=trav.reduce(function(s,p){return s+(p.km||0);},0);
     var kmAvg=visited.length?kmTot/visited.length:0;
-    /* recorduri */
     var longest=visited.slice().sort(function(a,b){return (b.km||0)-(a.km||0);})[0];
     var closest=visited.filter(function(p){return (p.km||0)>0;}).sort(function(a,b){return (a.km||0)-(b.km||0);})[0];
-    /* geografie */
     var cc={}; visited.forEach(function(p){ if(p.country)cc[p.country]=(cc[p.country]||0)+1; });
     var countriesSorted=Object.keys(cc).sort(function(a,b){return cc[b]-cc[a];});
     var topCountries=countriesSorted.slice(0,3);
-    /* ani */
     var yc={}; visited.forEach(function(p){ var y=placeYear(p); if(y)yc[y]=(yc[y]||0)+1; });
     var yKeys=Object.keys(yc).sort(function(a,b){return yc[b]-yc[a];});
     var topYear=yKeys[0];
-    /* oameni */
     var pc={}; visited.forEach(function(p){ (p.people||[]).forEach(function(id){ pc[id]=(pc[id]||0)+1; }); });
     var pKeys=Object.keys(pc).sort(function(a,b){return pc[b]-pc[a];});
-    var buddyId=pKeys[0];
-    var buddy=buddyId?personById(buddyId):null;
-    var uniquePeople=pKeys.length;
-
+    var buddyId=pKeys[0]; var buddy=buddyId?personById(buddyId):null; var uniquePeople=pKeys.length;
     function bar(aLbl,aVal,bLbl,bVal,aCol,bCol){
       var tot=aVal+bVal; var ap=tot?Math.round(aVal/tot*100):0; var bp=100-ap;
       return '<div class="tv-stat-bar"><div class="tv-sb-track">'
-        + '<div class="tv-sb-a" style="width:'+ap+'%;background:'+aCol+'"></div>'
-        + '<div class="tv-sb-b" style="width:'+bp+'%;background:'+bCol+'"></div></div>'
+        + '<div style="width:'+ap+'%;background:'+aCol+'"></div>'
+        + '<div style="width:'+bp+'%;background:'+bCol+'"></div></div>'
         + '<div class="tv-sb-legend"><span><i style="background:'+aCol+'"></i>'+aLbl+' · <b>'+aVal+'</b> ('+ap+'%)</span>'
         + '<span><i style="background:'+bCol+'"></i>'+bLbl+' · <b>'+bVal+'</b> ('+bp+'%)</span></div></div>';
     }
     function tile(ic,val,lbl){ return '<div class="tv-stat"><div class="tv-stat-ic">'+ic+'</div><div class="tv-stat-v">'+val+'</div><div class="tv-stat-l">'+lbl+'</div></div>'; }
-
-    var GREEN=getVar("--green"), AMBER=getVar("--amber"), ACC=getVar("--accent"), RED=getVar("--red");
-
+    var GREEN=getVar("--green"), AMBER=getVar("--amber"), ACC=getVar("--accent");
     var tiles=''
       + tile("🧳", visited.length, "călătorii")
+      + tile("✈️", flightsTot, "zboruri")
       + tile("⭐", wish.length, "wishlist")
       + tile("🌍", countriesSorted.length, "țări vizitate")
       + tile("👥", uniquePeople, "tovarăși de drum")
@@ -3601,35 +3634,29 @@ load();
       + tile("↔️", fmtKm(kmTot*2), "km dus-întors")
       + tile("📏", fmtKm(kmAvg), "km / călătorie")
       + tile("🗓️", (topYear?topYear+" ("+yc[topYear]+")":"—"), "cel mai activ an");
-
     var bars=''
-      + '<div class="tv-stat-barwrap"><div class="tv-stat-bt">✈️ Avion vs 🚗 Mașină</div>'
-      +   bar("✈️ Avion",byPlane.length,"🚗 Mașină",byCar.length,ACC,AMBER)+'</div>'
-      + '<div class="tv-stat-barwrap"><div class="tv-stat-bt">🌴 Travel vs 💼 Work</div>'
-      +   bar("🌴 Travel",trav.length,"💼 Work",work.length,GREEN,ACC)+'</div>';
-
+      + '<div class="tv-stat-barwrap"><div class="tv-stat-bt">✈️ Avion vs 🚗 Mașină</div>'+bar("✈️ Avion",byPlane.length,"🚗 Mașină",byCar.length,ACC,AMBER)+'</div>'
+      + '<div class="tv-stat-barwrap"><div class="tv-stat-bt">🌴 Travel vs 💼 Work</div>'+bar("🌴 Travel",trav.length,"💼 Work",work.length,GREEN,ACC)+'</div>';
     var kmRows=''
+      + '<div class="tv-krow"><span>✈️ Total zboruri</span><b>'+flightsTot+'</b></div>'
       + '<div class="tv-krow"><span>✈️ Km cu avionul</span><b>'+fmtKm(kmPlane)+' km</b></div>'
       + '<div class="tv-krow"><span>🚗 Km cu mașina</span><b>'+fmtKm(kmCar)+' km</b></div>'
       + '<div class="tv-krow"><span>🌴 Km în vacanțe</span><b>'+fmtKm(kmTravel)+' km</b></div>'
       + '<div class="tv-krow"><span>💼 Km în interes de serviciu</span><b>'+fmtKm(kmWork)+' km</b></div>';
-
     var records=''
       + (longest?'<div class="tv-krow"><span>🏆 Cea mai lungă călătorie</span><b>'+esc(longest.name)+' · '+fmtKm(longest.km||0)+' km</b></div>':'')
       + (closest?'<div class="tv-krow"><span>📍 Cea mai apropiată</span><b>'+esc(closest.name)+' · '+fmtKm(closest.km||0)+' km</b></div>':'')
       + (buddy?'<div class="tv-krow"><span>🤝 Cel mai des tovarăș</span><b>'+esc(buddy.name)+' · '+pc[buddyId]+' călătorii</b></div>':'')
       + (topCountries.length?'<div class="tv-krow"><span>🥇 Top țări</span><b>'+topCountries.map(function(c){return esc(c)+" ("+cc[c]+")";}).join(", ")+'</b></div>':'');
-
     host.innerHTML=''
       + '<div class="tv-stats-head"><h3>📊 Statistici'+(hasActiveFilter()?' <span class="tv-stats-note">(pe filtrele active)</span>':'')+'</h3></div>'
       + '<div class="tv-stats-grid">'+tiles+'</div>'
       + '<div class="tv-stats-2col">'
       +   '<div class="tv-stats-card"><div class="tv-stats-ct">📐 Proporții</div>'+bars+'</div>'
-      +   '<div class="tv-stats-card"><div class="tv-stats-ct">🧭 Kilometri</div>'+kmRows+'</div>'
+      +   '<div class="tv-stats-card"><div class="tv-stats-ct">🧭 Kilometri & zboruri</div>'+kmRows+'</div>'
       +   '<div class="tv-stats-card"><div class="tv-stats-ct">🏅 Recorduri</div>'+records+'</div>'
       + '</div>';
   }
-  function hasActiveFilter(){ return !!(fYear||fCountry||fStatus||fPurpose||fPeople.size); }
   function syncNote(){
     var h=$("travelSyncNote"); if(!h) return;
     var nLocal=(window.travelPlaces||[]).length;
@@ -3647,13 +3674,13 @@ load();
   }
 
   /* filter actions */
-  window.tvSetYear=function(y){ fYear=y; renderAll(); };
-  window.tvSetCountry=function(c){ fCountry=c; renderAll(); };
-  window.tvSetStatus=function(s){ fStatus=s; renderAll(); };
-  window.tvSetPurpose=function(pu){ fPurpose=pu; renderAll(); };
+  window.tvSetYear=function(y){ fYear=y; tvPage=0; renderAll(); };
+  window.tvSetCountry=function(c){ fCountry=c; tvPage=0; renderAll(); };
+  window.tvSetStatus=function(s){ fStatus=s; tvPage=0; renderAll(); };
+  window.tvSetPurpose=function(pu){ fPurpose=pu; tvPage=0; renderAll(); };
   window.tvTogglePeopleFilter=function(){ var l=$("tvPplList"); if(l)l.classList.toggle("hidden"); };
-  window.tvTogglePerson=function(id){ if(fPeople.has(id))fPeople.delete(id); else fPeople.add(id); renderAll(); var l=$("tvPplList"); if(l)l.classList.remove("hidden"); };
-  window.tvClearPeople=function(){ fPeople.clear(); renderAll(); };
+  window.tvTogglePerson=function(id){ if(fPeople.has(id))fPeople.delete(id); else fPeople.add(id); tvPage=0; renderAll(); var l=$("tvPplList"); if(l)l.classList.remove("hidden"); };
+  window.tvClearPeople=function(){ fPeople.clear(); tvPage=0; renderAll(); };
 
   /* ==================== MODAL add/edit ==================== */
   function ensureModal(){
@@ -3671,6 +3698,7 @@ load();
       +       '<div class="mfld"><label>Status</label><div class="tv-seg" id="tvStatusSeg"><button type="button" data-v="visited" class="on" onclick="tvSeg(\'status\',\'visited\')">✅ Vizitat</button><button type="button" data-v="wishlist" onclick="tvSeg(\'status\',\'wishlist\')">⭐ Wishlist</button></div></div>'
       +       '<div class="mfld"><label>Scop</label><div class="tv-seg" id="tvPurposeSeg"><button type="button" data-v="travel" class="on" onclick="tvSeg(\'purpose\',\'travel\')">🌴 Travel</button><button type="button" data-v="work" onclick="tvSeg(\'purpose\',\'work\')">💼 Work</button></div></div>'
       +       '<div class="mfld"><label>Cum am ajuns</label><div class="tv-seg" id="tvModeSeg"><button type="button" data-v="plane" class="on" onclick="tvSeg(\'mode\',\'plane\')">✈️ Avion</button><button type="button" data-v="car" onclick="tvSeg(\'mode\',\'car\')">🚗 Mașină</button></div></div>'
+      +       '<div class="mfld" id="tvFlightsFld"><label>✈️ Număr de zboruri <span style="text-transform:none;font-weight:400;color:var(--muted)">(util la escale)</span></label><input type="number" id="tvFlights" min="1" step="1" placeholder="ex: 2"></div>'
       +       '<div class="mfld"><label>Perioadă</label><div class="tv-seg" id="tvPeriodSeg"><button type="button" data-v="range" class="on" onclick="tvSeg(\'period\',\'range\')">📆 Interval</button><button type="button" data-v="year" onclick="tvSeg(\'period\',\'year\')">🗓️ Doar anul</button></div></div>'
       +       '<div class="mfld" id="tvRangeStart"><label>De la</label><input type="date" id="tvStart"></div>'
       +       '<div class="mfld" id="tvRangeEnd"><label>Până la</label><input type="date" id="tvEnd"></div>'
@@ -3691,6 +3719,7 @@ load();
     var mp={status:"tvStatusSeg",purpose:"tvPurposeSeg",mode:"tvModeSeg",period:"tvPeriodSeg"};
     var seg=$(mp[group]); if(seg){ seg.querySelectorAll("button").forEach(function(b){ b.classList.toggle("on",b.dataset.v===val); }); }
     if(group==="period"){ var range=(val==="range"); $("tvRangeStart").style.display=range?"":"none"; $("tvRangeEnd").style.display=range?"":"none"; $("tvYearFld").style.display=range?"none":""; }
+    if(group==="mode"){ var ff=$("tvFlightsFld"); if(ff)ff.style.display=(val==="plane")?"":"none"; }
   };
   window.tvTogglePplPick=function(){ var g=$("tvPplPick"); if(g)g.classList.toggle("hidden"); };
   function renderPplPick(){
@@ -3763,6 +3792,7 @@ load();
     $("tvModalTitle").textContent="Adaugă locație"; $("tvDelBtn").style.display="none";
     $("tvSearch").value=""; $("tvName").value=""; $("tvCountry").value=""; $("tvStart").value=""; $("tvEnd").value=""; $("tvYear").value="";
     $("tvNotes").value=""; $("tvCoord").innerHTML="📍 alege un rezultat pentru coordonate & distanță";
+    if($("tvFlights"))$("tvFlights").value="1";
     tvClearPhoto(); tvSeg("status","visited"); tvSeg("purpose","travel"); tvSeg("mode","plane"); tvSeg("period","range");
     renderPplPick(); var g=$("tvPplPick"); if(g)g.classList.add("hidden");
     $("travelModal").classList.add("open"); setTimeout(function(){$("tvSearch").focus();},80);
@@ -3775,6 +3805,7 @@ load();
     $("tvSearch").value=""; $("tvName").value=p.name||""; $("tvCountry").value=p.country||"";
     $("tvStart").value=toISOd(p.start_date)||""; $("tvEnd").value=toISOd(p.end_date)||""; $("tvYear").value=p.year||"";
     $("tvNotes").value=p.notes||"";
+    if($("tvFlights"))$("tvFlights").value=(p.flights||1);
     tvSeg("status",p.status||"visited"); tvSeg("purpose",p.purpose||"travel"); tvSeg("mode",p.travel_mode||"plane"); tvSeg("period",(p.start_date?"range":"year"));
     if(tmpPhoto){ $("tvPhotoPrev").innerHTML='<img src="'+tmpPhoto+'" alt="">'; $("tvPhotoRm").style.display=""; } else tvClearPhoto();
     if(p.lat!=null){ $("tvCoord").innerHTML='📍 '+Number(p.lat).toFixed(3)+", "+Number(p.lng).toFixed(3)+' · <b>'+fmtKm(p.km||haversine(p.lat,p.lng))+' km</b> de Pitești'; }
@@ -3791,10 +3822,11 @@ load();
     var end=(period==="range")?(toISOd($("tvEnd").value)||""):"";
     var yearVal=(period==="year")?(parseInt($("tvYear").value,10)||null):(start?parseInt(start.slice(0,4),10):null);
     var km=haversine(tmpLat,tmpLng);
+    var flights=(segState.mode==="plane")?(Math.max(1,parseInt($("tvFlights").value,10)||1)):0;
     var obj={ id: editId||uid(), name:name, country:$("tvCountry").value.trim()||tmpCountry||"",
       lat:tmpLat, lng:tmpLng, status:segState.status, purpose:segState.purpose, travel_mode:segState.mode,
       start_date:start, end_date:end, year:yearVal, people:Array.from(pickPeople), notes:$("tvNotes").value.trim(),
-      photo:tmpPhoto||"", km:km,
+      photo:tmpPhoto||"", km:km, flights:flights,
       seq: editId? (function(){var e=window.travelPlaces.find(function(x){return x.id===editId;});return e?e.seq:Date.now();})() : Date.now() };
     if(editId){ var i=window.travelPlaces.findIndex(function(x){return x.id===editId;}); if(i>=0)window.travelPlaces[i]=obj; else window.travelPlaces.push(obj); }
     else window.travelPlaces.push(obj);
@@ -3878,6 +3910,7 @@ load();
       + '<div class="tv-mapstyles" id="travelMapStyles"></div>'
       + '<div id="travelMap"></div>'
       + '<div class="tv-grid" id="travelGrid"></div>'
+      + '<div id="travelPager"></div>'
       + '<div id="travelStats"></div>';
     if(pageSettings) wrap.insertBefore(sec, pageSettings); else wrap.appendChild(sec);
   }
