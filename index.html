@@ -1360,6 +1360,32 @@ html[data-theme="night"] .tv-label span, html[data-theme="grape"] .tv-label span
 .tv-selrm:hover{ transform:scale(1.18); }
 .tv-selname{ position:absolute;left:0;right:0;bottom:0;padding:8px 4px 3px;font-size:9.5px;font-weight:700;color:#fff;text-align:center;background:linear-gradient(transparent,rgba(0,0,0,.75));opacity:0;transform:translateY(4px);transition:.15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
 .tv-selphoto:hover .tv-selname{ opacity:1;transform:translateY(0); }
+/* ── STATISTICI ── */
+#travelStats{ margin-top:26px; }
+.tv-stats-head{ display:flex;align-items:center;gap:10px;margin-bottom:14px; }
+.tv-stats-head h3{ margin:0;font-size:18px;font-weight:800;letter-spacing:-.02em; }
+.tv-stats-note{ font-size:12px;color:var(--muted);font-weight:600; }
+.tv-stats-grid{ display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px;margin-bottom:16px; }
+.tv-stat{ background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 14px;text-align:center;box-shadow:var(--shadow);transition:transform .16s var(--spring),box-shadow .18s; }
+.tv-stat:hover{ transform:translateY(-3px);box-shadow:var(--e-float,0 22px 50px -18px rgba(0,0,0,.5)); }
+.tv-stat-ic{ font-size:24px;margin-bottom:6px; }
+.tv-stat-v{ font-size:24px;font-weight:850;letter-spacing:-.03em;font-variant-numeric:tabular-nums; }
+.tv-stat-l{ font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-top:3px; }
+.tv-stats-2col{ display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px; }
+.tv-stats-card{ background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:16px 18px;box-shadow:var(--shadow); }
+.tv-stats-ct{ font-size:13px;font-weight:800;margin-bottom:12px;letter-spacing:-.01em; }
+.tv-stat-barwrap{ margin-bottom:14px; }
+.tv-stat-barwrap:last-child{ margin-bottom:0; }
+.tv-stat-bt{ font-size:12px;font-weight:700;color:var(--muted);margin-bottom:6px; }
+.tv-sb-track{ display:flex;height:14px;border-radius:999px;overflow:hidden;background:var(--panel2);border:1px solid var(--line); }
+.tv-sb-a,.tv-sb-b{ height:100%;transition:width .4s var(--ease); }
+.tv-sb-legend{ display:flex;justify-content:space-between;gap:8px;margin-top:7px;font-size:11.5px;color:var(--muted);flex-wrap:wrap; }
+.tv-sb-legend i{ display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px;vertical-align:middle; }
+.tv-sb-legend b{ color:var(--txt);font-variant-numeric:tabular-nums; }
+.tv-krow{ display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);font-size:13px; }
+.tv-krow:last-child{ border-bottom:none; }
+.tv-krow span{ color:var(--muted); }
+.tv-krow b{ font-weight:800;font-variant-numeric:tabular-nums;text-align:right; }
 /* nume la hover peste avatarurile mici din carduri */
 .tv-ava{ position:relative; }
 /* ── mini-tab Travel în profilul persoanei ── */
@@ -3513,9 +3539,97 @@ load();
     }).join("");
   }
   function renderAll(){
-    renderStyleSwitcher(); renderFilters(); renderKm(); renderCards(); renderMap(); syncNote();
+    renderStyleSwitcher(); renderFilters(); renderKm(); renderCards(); renderMap(); renderStats(); syncNote();
     ensureAuto(filtered(), function(){ renderCards(); if(map){ renderMap(); } });
   }
+  /* ==================== STATISTICI ==================== */
+  function renderStats(){
+    var host=$("travelStats"); if(!host) return;
+    var list=filtered();
+    var visited=list.filter(function(p){return p.status==="visited";});
+    var wish=list.filter(function(p){return p.status==="wishlist";});
+    if(!list.length){ host.innerHTML=""; return; }
+
+    /* tipuri */
+    var byPlane=visited.filter(function(p){return p.travel_mode!=="car";});
+    var byCar  =visited.filter(function(p){return p.travel_mode==="car";});
+    var work   =visited.filter(function(p){return (p.purpose||"travel")==="work";});
+    var trav   =visited.filter(function(p){return (p.purpose||"travel")!=="work";});
+    /* km */
+    var kmTot=visited.reduce(function(s,p){return s+(p.km||0);},0);
+    var kmPlane=byPlane.reduce(function(s,p){return s+(p.km||0);},0);
+    var kmCar=byCar.reduce(function(s,p){return s+(p.km||0);},0);
+    var kmWork=work.reduce(function(s,p){return s+(p.km||0);},0);
+    var kmTravel=trav.reduce(function(s,p){return s+(p.km||0);},0);
+    var kmAvg=visited.length?kmTot/visited.length:0;
+    /* recorduri */
+    var longest=visited.slice().sort(function(a,b){return (b.km||0)-(a.km||0);})[0];
+    var closest=visited.filter(function(p){return (p.km||0)>0;}).sort(function(a,b){return (a.km||0)-(b.km||0);})[0];
+    /* geografie */
+    var cc={}; visited.forEach(function(p){ if(p.country)cc[p.country]=(cc[p.country]||0)+1; });
+    var countriesSorted=Object.keys(cc).sort(function(a,b){return cc[b]-cc[a];});
+    var topCountries=countriesSorted.slice(0,3);
+    /* ani */
+    var yc={}; visited.forEach(function(p){ var y=placeYear(p); if(y)yc[y]=(yc[y]||0)+1; });
+    var yKeys=Object.keys(yc).sort(function(a,b){return yc[b]-yc[a];});
+    var topYear=yKeys[0];
+    /* oameni */
+    var pc={}; visited.forEach(function(p){ (p.people||[]).forEach(function(id){ pc[id]=(pc[id]||0)+1; }); });
+    var pKeys=Object.keys(pc).sort(function(a,b){return pc[b]-pc[a];});
+    var buddyId=pKeys[0];
+    var buddy=buddyId?personById(buddyId):null;
+    var uniquePeople=pKeys.length;
+
+    function bar(aLbl,aVal,bLbl,bVal,aCol,bCol){
+      var tot=aVal+bVal; var ap=tot?Math.round(aVal/tot*100):0; var bp=100-ap;
+      return '<div class="tv-stat-bar"><div class="tv-sb-track">'
+        + '<div class="tv-sb-a" style="width:'+ap+'%;background:'+aCol+'"></div>'
+        + '<div class="tv-sb-b" style="width:'+bp+'%;background:'+bCol+'"></div></div>'
+        + '<div class="tv-sb-legend"><span><i style="background:'+aCol+'"></i>'+aLbl+' · <b>'+aVal+'</b> ('+ap+'%)</span>'
+        + '<span><i style="background:'+bCol+'"></i>'+bLbl+' · <b>'+bVal+'</b> ('+bp+'%)</span></div></div>';
+    }
+    function tile(ic,val,lbl){ return '<div class="tv-stat"><div class="tv-stat-ic">'+ic+'</div><div class="tv-stat-v">'+val+'</div><div class="tv-stat-l">'+lbl+'</div></div>'; }
+
+    var GREEN=getVar("--green"), AMBER=getVar("--amber"), ACC=getVar("--accent"), RED=getVar("--red");
+
+    var tiles=''
+      + tile("🧳", visited.length, "călătorii")
+      + tile("⭐", wish.length, "wishlist")
+      + tile("🌍", countriesSorted.length, "țări vizitate")
+      + tile("👥", uniquePeople, "tovarăși de drum")
+      + tile("🧭", fmtKm(kmTot), "km total")
+      + tile("↔️", fmtKm(kmTot*2), "km dus-întors")
+      + tile("📏", fmtKm(kmAvg), "km / călătorie")
+      + tile("🗓️", (topYear?topYear+" ("+yc[topYear]+")":"—"), "cel mai activ an");
+
+    var bars=''
+      + '<div class="tv-stat-barwrap"><div class="tv-stat-bt">✈️ Avion vs 🚗 Mașină</div>'
+      +   bar("✈️ Avion",byPlane.length,"🚗 Mașină",byCar.length,ACC,AMBER)+'</div>'
+      + '<div class="tv-stat-barwrap"><div class="tv-stat-bt">🌴 Travel vs 💼 Work</div>'
+      +   bar("🌴 Travel",trav.length,"💼 Work",work.length,GREEN,ACC)+'</div>';
+
+    var kmRows=''
+      + '<div class="tv-krow"><span>✈️ Km cu avionul</span><b>'+fmtKm(kmPlane)+' km</b></div>'
+      + '<div class="tv-krow"><span>🚗 Km cu mașina</span><b>'+fmtKm(kmCar)+' km</b></div>'
+      + '<div class="tv-krow"><span>🌴 Km în vacanțe</span><b>'+fmtKm(kmTravel)+' km</b></div>'
+      + '<div class="tv-krow"><span>💼 Km în interes de serviciu</span><b>'+fmtKm(kmWork)+' km</b></div>';
+
+    var records=''
+      + (longest?'<div class="tv-krow"><span>🏆 Cea mai lungă călătorie</span><b>'+esc(longest.name)+' · '+fmtKm(longest.km||0)+' km</b></div>':'')
+      + (closest?'<div class="tv-krow"><span>📍 Cea mai apropiată</span><b>'+esc(closest.name)+' · '+fmtKm(closest.km||0)+' km</b></div>':'')
+      + (buddy?'<div class="tv-krow"><span>🤝 Cel mai des tovarăș</span><b>'+esc(buddy.name)+' · '+pc[buddyId]+' călătorii</b></div>':'')
+      + (topCountries.length?'<div class="tv-krow"><span>🥇 Top țări</span><b>'+topCountries.map(function(c){return esc(c)+" ("+cc[c]+")";}).join(", ")+'</b></div>':'');
+
+    host.innerHTML=''
+      + '<div class="tv-stats-head"><h3>📊 Statistici'+(hasActiveFilter()?' <span class="tv-stats-note">(pe filtrele active)</span>':'')+'</h3></div>'
+      + '<div class="tv-stats-grid">'+tiles+'</div>'
+      + '<div class="tv-stats-2col">'
+      +   '<div class="tv-stats-card"><div class="tv-stats-ct">📐 Proporții</div>'+bars+'</div>'
+      +   '<div class="tv-stats-card"><div class="tv-stats-ct">🧭 Kilometri</div>'+kmRows+'</div>'
+      +   '<div class="tv-stats-card"><div class="tv-stats-ct">🏅 Recorduri</div>'+records+'</div>'
+      + '</div>';
+  }
+  function hasActiveFilter(){ return !!(fYear||fCountry||fStatus||fPurpose||fPeople.size); }
   function syncNote(){
     var h=$("travelSyncNote"); if(!h) return;
     var nLocal=(window.travelPlaces||[]).length;
@@ -3763,7 +3877,8 @@ load();
       + '<div class="tv-filters" id="travelFilters"></div>'
       + '<div class="tv-mapstyles" id="travelMapStyles"></div>'
       + '<div id="travelMap"></div>'
-      + '<div class="tv-grid" id="travelGrid"></div>';
+      + '<div class="tv-grid" id="travelGrid"></div>'
+      + '<div id="travelStats"></div>';
     if(pageSettings) wrap.insertBefore(sec, pageSettings); else wrap.appendChild(sec);
   }
   function injectTab(){
