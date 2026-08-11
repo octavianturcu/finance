@@ -1349,6 +1349,19 @@ html[data-theme="night"] .tv-label span, html[data-theme="grape"] .tv-label span
 .tv-pperson:hover{ border-color:var(--accent); }
 .tv-pperson.on{ background:color-mix(in srgb,var(--accent) 16%,transparent);border-color:var(--accent);color:var(--accent); }
 .tv-pperson .tv-ava{ margin:0;width:24px;height:24px;border:none; }
+/* ── layout picker + strip cu poze selectate ── */
+.tv-pplwrap{ display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap; }
+.tv-pplwrap .tv-pplpick{ flex:1 1 240px;min-width:0; }
+.tv-selstrip{ flex:0 1 auto;display:flex;gap:9px;flex-wrap:wrap;align-content:flex-start; }
+.tv-selphoto{ position:relative;width:54px;height:54px;border-radius:13px;overflow:hidden;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 10px -6px rgba(0,0,0,.4); }
+.tv-selphoto img{ width:100%;height:100%;object-fit:cover;display:block; }
+.tv-selini{ font-weight:800;font-size:16px;color:#fff;width:100%;height:100%;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,var(--accent),var(--accent2)); }
+.tv-selrm{ position:absolute;top:-6px;right:-6px;width:20px;height:20px;border-radius:50%;border:2px solid var(--panel);background:var(--red);color:#fff;font-size:13px;line-height:1;font-weight:800;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;box-shadow:0 2px 6px rgba(0,0,0,.4);z-index:2;transition:transform .12s var(--spring); }
+.tv-selrm:hover{ transform:scale(1.18); }
+.tv-selname{ position:absolute;left:0;right:0;bottom:0;padding:8px 4px 3px;font-size:9.5px;font-weight:700;color:#fff;text-align:center;background:linear-gradient(transparent,rgba(0,0,0,.75));opacity:0;transform:translateY(4px);transition:.15s;white-space:nowrap;overflow:hidden;text-overflow:ellipsis; }
+.tv-selphoto:hover .tv-selname{ opacity:1;transform:translateY(0); }
+/* nume la hover peste avatarurile mici din carduri */
+.tv-ava{ position:relative; }
 /* ── mini-tab Travel în profilul persoanei ── */
 .pm-tabs{ display:flex;gap:4px;padding:4px;background:var(--panel2);border:1px solid var(--line);border-radius:12px;margin-bottom:14px; }
 .pm-tabs button{ flex:1;background:transparent;border:none;padding:10px;border-radius:9px;color:var(--muted);font-weight:700;font-size:13.5px;cursor:pointer;font-family:var(--font); }
@@ -1946,13 +1959,13 @@ function downloadBackup(id){const b=backups.find(x=>x.id===id);if(!b)return;cons
 /* ============ EXPORT / IMPORT ============ */
 function download(name,text,type){const b=new Blob([text],{type});const u=URL.createObjectURL(b);const a=document.createElement("a");a.href=u;a.download=name;a.click();URL.revokeObjectURL(u);}
 function stamp(){return new Date().toISOString().slice(0,10);}
-function fullExportObject(){return {app:"BudgetTracker",version:3,exportedAt:new Date().toISOString(),rows,shoppingLists,cars,catBudgets,recStatus,backups,people,categories:CATEGORIES,settings};}
+function fullExportObject(){return {app:"BudgetTracker",version:3,exportedAt:new Date().toISOString(),rows,shoppingLists,cars,catBudgets,recStatus,backups,people,travelPlaces:(window.travelPlaces||[]),categories:CATEGORIES,settings};}
 function exportJSON(){download("budget_complet_"+stamp()+".json",JSON.stringify(fullExportObject(),null,2),"application/json");toast("⬇️ Export complet (toate datele)");}
 function exportAll(){exportJSON();}
 function csvCell(v){let s=(v==null)?"":String(v);if(typeof v==="boolean")s=v?"true":"false";if(/[",\n;]/.test(s))s='"'+s.replace(/"/g,'""')+'"';return s;}
 function exportCSV(){const h=COLS.join(",");const lines=rows.map(r=>{r["+/-"]=plusMinus(r.Amount);r.Reccurent=recurrent(r.Type);return COLS.map(c=>c==="Data"?csvCell(isoToDMY(toISO(r.Data))):csvCell(r[c])).join(",");});download("budget_"+stamp()+".csv",h+"\n"+lines.join("\n"),"text/csv");}
 function exportCarsCSV(){const cols=["Nume","Icon","VIN","Nr inmatriculare","ITP","Rovinieta","RCA"];const lines=cars.map(c=>[c.name,c.icon,c.vin,c.plate,isoToDMY(toISO(c.itp)),isoToDMY(toISO(c.rovinieta)),isoToDMY(toISO(c.rca))].map(csvCell).join(","));download("masini_"+stamp()+".csv",cols.join(",")+"\n"+lines.join("\n"),"text/csv");toast("⬇️ Mașini exportate (CSV)");}
-function importJSON(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{try{const d=JSON.parse(e.target.result);if(Array.isArray(d)){rows=d.map(normalize);}else{if(Array.isArray(d.rows))rows=d.rows.map(normalize);if(Array.isArray(d.shoppingLists))shoppingLists=d.shoppingLists;if(Array.isArray(d.cars))cars=d.cars;if(d.catBudgets)catBudgets=d.catBudgets;if(d.recStatus)recStatus=d.recStatus;if(Array.isArray(d.backups))backups=d.backups;if(Array.isArray(d.people))people=d.people;if(d.categories)CATEGORIES=d.categories;if(d.settings)settings=Object.assign(settings,d.settings);}ensureSeq();page=0;applyCurrencyUI();buildFilterOptions();render();if(currentPage==="lists")renderLists();markDirty();scheduleBackup();toast("⬆️ Import complet reușit");}catch(err){alert("JSON invalid: "+err);}input.value="";};rd.readAsText(f);}
+function importJSON(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{try{const d=JSON.parse(e.target.result);if(Array.isArray(d)){rows=d.map(normalize);}else{if(Array.isArray(d.rows))rows=d.rows.map(normalize);if(Array.isArray(d.shoppingLists))shoppingLists=d.shoppingLists;if(Array.isArray(d.cars))cars=d.cars;if(d.catBudgets)catBudgets=d.catBudgets;if(d.recStatus)recStatus=d.recStatus;if(Array.isArray(d.backups))backups=d.backups;if(Array.isArray(d.people))people=d.people;if(Array.isArray(d.travelPlaces)){window.travelPlaces=d.travelPlaces;try{localStorage.setItem("fp2_travel_places",JSON.stringify(window.travelPlaces));}catch(_e){}if(typeof window.tvSyncNow==="function")setTimeout(window.tvSyncNow,300);}if(d.categories)CATEGORIES=d.categories;if(d.settings)settings=Object.assign(settings,d.settings);}ensureSeq();page=0;applyCurrencyUI();buildFilterOptions();render();if(currentPage==="lists")renderLists();markDirty();scheduleBackup();toast("⬆️ Import complet reușit");}catch(err){alert("JSON invalid: "+err);}input.value="";};rd.readAsText(f);}
 function importCSV(input){const f=input.files[0];if(!f)return;const rd=new FileReader();rd.onload=e=>{try{const parsed=parseCSV(e.target.result).map(normalize);rows=rows.concat(parsed);ensureSeq();page=0;buildFilterOptions();render();markDirty();dlFlush();toast(`⬆️ ${parsed.length} rânduri importate (adăugate la cele existente). Se salvează în cloud...`);}catch(err){alert("CSV invalid: "+err);}input.value="";};rd.readAsText(f);}
 function normalize(o){const r=newRow();COLS.forEach(c=>{if(o[c]!==undefined)r[c]=o[c];});if(o.id)r.id=o.id;r.Data=toISO(r.Data);["Asset","Disposable","Spike"].forEach(c=>{const s=String(r[c]).toLowerCase();r[c]=(r[c]===true||s==="true"||s==="1"||s==="yes"||s==="da"||s==="x");});r["+/-"]=plusMinus(r.Amount);r.Reccurent=recurrent(r.Type);return r;}
 function parseCSV(text){const out=[];let field="",row=[],inq=false;text=text.replace(/\r\n/g,"\n").replace(/\r/g,"\n");const firstLine=text.split("\n")[0]||"";const delim=(firstLine.split(";").length>firstLine.split(",").length)?";":",";for(let i=0;i<text.length;i++){const ch=text[i];if(inq){if(ch==='"'){if(text[i+1]==='"'){field+='"';i++;}else inq=false;}else field+=ch;}else{if(ch==='"')inq=true;else if(ch===delim){row.push(field);field="";}else if(ch==="\n"){row.push(field);out.push(row);row=[];field="";}else field+=ch;}}if(field!==""||row.length){row.push(field);out.push(row);}if(!out.length)return[];const header=out.shift().map(h=>h.trim());return out.filter(r=>r.some(c=>c!=="")).map(r=>{const o={};header.forEach((h,idx)=>o[h]=r[idx]!==undefined?r[idx].trim():"");return o;});}
@@ -3176,7 +3189,7 @@ load();
     var ids={}; (window.travelPlaces||[]).forEach(function(p){ (p.people||[]).forEach(function(id){ ids[id]=1; }); });
     return (window.people||[]).filter(function(p){ return ids[p.id]; }).sort(function(a,b){ return String(a.name||"").localeCompare(String(b.name||""),"ro"); });
   }
-  function avaHtml(p){ return p&&p.photo?'<span class="tv-ava"><img src="'+p.photo+'" alt=""></span>':'<span class="tv-ava">'+esc(ini(p?p.name:"?"))+'</span>'; }
+  function avaHtml(p){ var nm=esc(p?p.name:"?"); return p&&p.photo?'<span class="tv-ava" title="'+nm+'"><img src="'+p.photo+'" alt="'+nm+'"></span>':'<span class="tv-ava" title="'+nm+'">'+esc(ini(p?p.name:"?"))+'</span>'; }
 
   /* ==================== AUTO PHOTO (Wikipedia/Wikimedia) ==================== */
   function autoKey(p){ return (p.name||"")+"|"+(p.country||""); }
@@ -3216,11 +3229,12 @@ load();
   }
 
   /* ==================== STORAGE ==================== */
+  function cloudReady(){ var c=(typeof cloud!=="undefined")?cloud:null; return !!(c && c.client && c.session && c.session.user); }
   async function detectTable(){
-    if(hasTable!==null) return hasTable;
-    try{ if(window.cloud && cloud.client && cloud.session){ var r=await cloud.client.from("places").select("id").limit(1); hasTable=!r.error; } else hasTable=false; }
-    catch(e){ hasTable=false; }
-    return hasTable;
+    if(hasTable===true) return true;                 /* confirmat → cache */
+    if(!cloudReady()) return false;                  /* fără sesiune → NU cache-ui false */
+    try{ var r=await cloud.client.from("places").select("id").limit(1); if(!r.error){ hasTable=true; return true; } return false; }
+    catch(e){ return false; }
   }
   async function loadPlaces(){
     var ok=await detectTable();
@@ -3242,21 +3256,133 @@ load();
     }
     try{ window.travelPlaces=JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){ window.travelPlaces=[]; }
   }
+  /* Dacă serverul e gol dar avem locații locale (adăugate înainte să existe
+     tabela), le urcăm automat o singură dată. */
+  async function maybeMigrateLocal(){
+    try{
+      var ok=await detectTable(); if(!ok) return;
+      var local=[]; try{ local=JSON.parse(localStorage.getItem(LS_KEY)||"[]"); }catch(e){}
+      if((!window.travelPlaces||!window.travelPlaces.length) && local.length){
+        window.travelPlaces=local;
+        var res=await upsertRows(local.map(placeRow));
+        if(res.ok && typeof toast==="function") toast("☁️ "+local.length+" locații locale au fost urcate în cloud.");
+      }
+    }catch(e){ console.warn("migrate local:",e); }
+  }
   function saveLocal(){ try{ localStorage.setItem(LS_KEY,JSON.stringify(window.travelPlaces)); }catch(e){} }
+  function placeRow(p){
+    var uid=cloud.session.user.id;
+    return { user_id:uid, id:p.id, name:p.name||null, country:p.country||null, lat:p.lat, lng:p.lng,
+             status:p.status||null, purpose:p.purpose||null, travel_mode:p.travel_mode||null,
+             start_date:p.start_date||null, end_date:p.end_date||null, year:(p.year||null),
+             people:p.people||[], notes:p.notes||null, photo:p.photo||null,
+             distance_km:(p.km!=null?Math.round(p.km):null), seq:p.seq };
+  }
+  /* Upsert robust: încearcă onConflict user_id,id → fallback pe id (dacă lipsește
+     constrângerea compusă). Returnează {ok, error} pentru diagnostic vizibil. */
+  function stripCol(rowsArr,col){ return rowsArr.map(function(r){ var c=Object.assign({},r); delete c[col]; return c; }); }
+  async function tryUpsert(rowsArr){
+    var r=await cloud.client.from("places").upsert(rowsArr,{onConflict:"user_id,id"});
+    if(r.error && /no unique|exclusion constraint|on conflict/i.test(r.error.message||"")){
+      r=await cloud.client.from("places").upsert(rowsArr,{onConflict:"id"});
+    }
+    if(r.error && /no unique|exclusion constraint|on conflict/i.test(r.error.message||"")){
+      r=await cloud.client.from("places").upsert(rowsArr);
+    }
+    return r;
+  }
+  async function upsertRows(rowsArr){
+    if(!rowsArr.length) return {ok:true};
+    var dropped=[];
+    for(var attempt=0; attempt<16; attempt++){
+      var r=await tryUpsert(rowsArr);
+      if(!r.error){ return {ok:true, dropped:dropped}; }
+      var m=(r.error && (r.error.message||r.error.details||""))||"";
+      /* Coloană lipsă în schema cache → o eliminăm și reîncercăm (salvare parțială). */
+      var mm=m.match(/find the '([^']+)' column|column "?([a-z_]+)"? of/i);
+      var col=mm?(mm[1]||mm[2]):null;
+      if(col && rowsArr.length && Object.prototype.hasOwnProperty.call(rowsArr[0],col)){
+        dropped.push(col); rowsArr=stripCol(rowsArr,col); continue;
+      }
+      return {ok:false, error:r.error, dropped:dropped};
+    }
+    return {ok:false, error:{message:"Prea multe coloane lipsă în tabelă."}, dropped:dropped};
+  }
   async function upsertPlace(p){
     saveLocal();
-    var ok=await detectTable(); if(!ok) return;
+    if(!cloudReady()){ tvDiag("Salvat local. Nu ești conectat la cloud → nu se sincronizează. Conectează-te din Setări.","warn"); return; }
+    var ok=await detectTable(); if(!ok){ tvDiag("Salvat local, dar tabela „places” nu există în cloud. Rulează scriptul SQL, apoi apasă „Sincronizează în cloud”.","err"); syncNote(); return; }
     try{
-      var uid=cloud.session.user.id;
-      var row={ user_id:uid, id:p.id, name:p.name||null, country:p.country||null, lat:p.lat, lng:p.lng,
-                status:p.status||null, purpose:p.purpose||null, travel_mode:p.travel_mode||null,
-                start_date:p.start_date||null, end_date:p.end_date||null, year:(p.year||null),
-                people:p.people||[], notes:p.notes||null, photo:p.photo||null,
-                distance_km:(p.km!=null?Math.round(p.km):null), seq:p.seq };
-      var r=await cloud.client.from("places").upsert(row,{onConflict:"user_id,id"});
-      if(r.error) throw r.error;
-    }catch(e){ console.warn("travel upsert:",e); if(typeof toast==="function")toast("⚠️ Nu s-a salvat în cloud: "+(e.message||e)); }
+      var res=await upsertRows([placeRow(p)]);
+      if(!res.ok) throw res.error;
+      if(res.dropped && res.dropped.length) tvDiag("⚠️ Salvat în cloud, dar lipsesc coloanele: "+res.dropped.join(", ")+". Rulează creeaza_tabela_places.sql ca să salvezi și aceste câmpuri.","warn");
+      else tvDiag("✅ Locație salvată în cloud.","ok");
+    }catch(e){
+      var m=(e&&(e.message||e.details||e.hint))||String(e);
+      tvDiag("Nu s-a salvat în cloud: "+m+(/rls|policy|permission/i.test(m)?" · Rulează secțiunea POLICY din scriptul SQL.":""),"err");
+      console.warn("travel upsert:",e);
+    }
   }
+  /* Împinge TOATE locațiile locale în cloud (migrare după crearea tabelei). */
+  /* Diagnostic PERSISTENT (rămâne pe ecran, nu dispare ca toast-ul). */
+  function tvDiag(msg,kind){
+    try{ console.log("[travel]",msg); }catch(e){}
+    var h=$("travelDiag"); if(!h) return;
+    var col = kind==="err" ? "var(--red)" : (kind==="ok" ? "var(--green)" : "var(--amber)");
+    var bg  = "color-mix(in srgb,"+col+" 12%,transparent)";
+    var ts  = new Date().toLocaleTimeString("ro-RO");
+    h.innerHTML='<div style="background:'+bg+';border:1px solid color-mix(in srgb,'+col+' 45%,var(--line));border-radius:12px;padding:11px 14px;margin-bottom:14px;font-size:12.5px;line-height:1.5">'
+      + '<b style="color:'+col+'">🩺 Diagnostic Travel · '+ts+'</b><br>'+esc(msg)
+      + ' <button class="tv-chip" style="margin-left:8px" onclick="document.getElementById(\'travelDiag\').innerHTML=\'\'">✕</button></div>';
+  }
+  window.tvDiagClear=function(){ var h=$("travelDiag"); if(h)h.innerHTML=""; };
+  window.tvSyncNow=async function(){
+    hasTable=null; /* re-detectează */
+    if(!cloudReady()){ tvDiag("Nu ești conectat la cloud. Conectează-te întâi din Setări.","err"); return; }
+    var ok=await detectTable();
+    if(!ok){ tvDiag("Tabela „places” NU există (sau nu e accesibilă). Rulează scriptul creeaza_tabela_places.sql în Supabase → SQL Editor, apoi apasă din nou Sincronizează.","err"); syncNote(); return; }
+    var list=(window.travelPlaces||[]);
+    if(!list.length){ tvDiag("Nu există locații locale de sincronizat.","warn"); return; }
+    tvDiag("⏳ Se sincronizează "+list.length+" locații…","warn");
+    try{
+      var res=await upsertRows(list.map(placeRow));
+      if(!res.ok) throw res.error;
+      if(res.dropped && res.dropped.length) tvDiag("⚠️ Salvat "+list.length+" locații, dar lipsesc coloanele: "+res.dropped.join(", ")+". Rulează creeaza_tabela_places.sql pentru fidelitate completă.","warn");
+      else tvDiag("✅ Salvat cu succes "+list.length+" locații în cloud. Verifică în Supabase → Table Editor → places.","ok");
+      syncNote();
+    }catch(e){
+      var m=(e&&(e.message||e.details||e.hint))||String(e);
+      var extra="";
+      if(/row-level security|rls|policy/i.test(m)) extra=" · Cauză probabilă: politica RLS. Rulează secțiunea de POLICY din scriptul SQL.";
+      else if(/permission denied/i.test(m)) extra=" · Permisiune refuzată (RLS). Rulează scriptul SQL complet.";
+      else if(/column .* does not exist/i.test(m)) extra=" · Lipsește o coloană. Rulează scriptul SQL (are ALTER TABLE ... ADD COLUMN).";
+      tvDiag("Eroare la salvare: "+m+extra,"err");
+      console.warn("tvSyncNow:",e);
+    }
+  };
+  /* ---- EXPORT locații (JSON / CSV) ---- */
+  function tvStamp(){ return new Date().toISOString().slice(0,10); }
+  function tvDownload(name,text,type){ try{ var b=new Blob([text],{type:type}); var u=URL.createObjectURL(b); var a=document.createElement("a"); a.href=u; a.download=name; a.click(); URL.revokeObjectURL(u); }catch(e){ tvDiag("Nu s-a putut descărca: "+e,"err"); } }
+  window.tvExportJSON=function(){
+    var list=(window.travelPlaces||[]);
+    var out={ app:"TravelMap", exportedAt:new Date().toISOString(), home:HOME, count:list.length, places:list };
+    tvDownload("travel_"+tvStamp()+".json", JSON.stringify(out,null,2), "application/json");
+    if(typeof toast==="function")toast("⬇️ "+list.length+" locații exportate (JSON)");
+  };
+  function csvCell2(v){ var s=(v==null)?"":String(v); if(typeof v==="boolean")s=v?"true":"false"; if(/[",\n;]/.test(s))s='"'+s.replace(/"/g,'""')+'"'; return s; }
+  window.tvExportCSV=function(){
+    var list=(window.travelPlaces||[]);
+    var cols=["Nume","Tara","Status","Scop","Mod","De la","Pana la","An","Km","Persoane","Note","Lat","Lng"];
+    var lines=list.map(function(p){
+      var per=(p.people||[]).map(function(id){ var x=personById(id); return x?x.name:id; }).join("; ");
+      return [ p.name, p.country, (p.status==="wishlist"?"Wishlist":"Vizitat"),
+               (p.purpose==="work"?"Work":"Travel"), (p.travel_mode==="car"?"Masina":"Avion"),
+               (p.start_date?dmy(p.start_date):""), (p.end_date?dmy(p.end_date):""), (p.year||""),
+               (p.km!=null?Math.round(p.km):""), per, p.notes, p.lat, p.lng ].map(csvCell2).join(",");
+    });
+    tvDownload("travel_"+tvStamp()+".csv", cols.join(",")+"\n"+lines.join("\n"), "text/csv");
+    if(typeof toast==="function")toast("⬇️ "+list.length+" locații exportate (CSV)");
+  };
   async function deletePlaceDB(id){
     saveLocal(); var ok=await detectTable(); if(!ok) return;
     try{ var uid=cloud.session.user.id; await cloud.client.from("places").delete().eq("user_id",uid).eq("id",id); }
@@ -3366,7 +3492,7 @@ load();
     if(!list.length){ grid.innerHTML='<div class="tv-empty"><div style="font-size:44px">🌍</div><p><b>Nicio locație încă</b></p><p>Apasă <b>＋ Adaugă locație</b> ca să pui prima ta călătorie pe hartă.</p></div>'; return; }
     grid.innerHTML=list.map(function(p){
       var per=(p.people||[]).map(personById).filter(Boolean);
-      var avas=per.slice(0,5).map(avaHtml).join("")+(per.length>5?'<span class="tv-ava">+'+(per.length-5)+'</span>':"");
+      var avas=per.slice(0,5).map(avaHtml).join("")+(per.length>5?'<span class="tv-ava" title="'+esc(per.slice(5).map(function(x){return x.name;}).join(", "))+'">+'+(per.length-5)+'</span>':"");
       var mode=p.travel_mode==="car"?"🚗 Mașină":"✈️ Avion";
       var purp=p.purpose==="work"?"💼 Work":"🌴 Travel";
       var dp=displayPhoto(p);
@@ -3392,10 +3518,17 @@ load();
   }
   function syncNote(){
     var h=$("travelSyncNote"); if(!h) return;
+    var nLocal=(window.travelPlaces||[]).length;
     detectTable().then(function(ok){
-      if(!ok && window.cloud && cloud.session){
-        h.innerHTML='<div style="background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 40%,var(--line));border-radius:12px;padding:11px 14px;margin-bottom:14px;font-size:12.5px">⚠️ Locațiile funcționează local, dar <b>nu se sincronizează în cloud</b> încă. Rulează scriptul <b>creeaza_tabela_places.sql</b> în Supabase, apoi 🔄 reintră în Travel.</div>';
-      } else h.innerHTML="";
+      if(!cloudReady()){ h.innerHTML=""; return; }
+      if(!ok){
+        h.innerHTML='<div style="background:color-mix(in srgb,var(--amber) 12%,transparent);border:1px solid color-mix(in srgb,var(--amber) 40%,var(--line));border-radius:12px;padding:11px 14px;margin-bottom:14px;font-size:12.5px">⚠️ Locațiile funcționează local, dar <b>nu se sincronizează în cloud</b> încă. Rulează scriptul <b>creeaza_tabela_places.sql</b> în Supabase → SQL Editor, apoi apasă butonul de mai jos.'
+          + (nLocal?' <button class="tv-chip" style="margin-left:8px" onclick="tvSyncNow()">🔄 Sincronizează '+nLocal+' locații acum</button>':'')
+          + '</div>';
+      } else {
+        /* Tabela există. Oferă buton de sincronizare manuală pentru siguranță. */
+        h.innerHTML = nLocal ? ('<div style="display:flex;justify-content:flex-end;margin-bottom:8px"><button class="tv-chip" onclick="tvSyncNow()">☁️ Sincronizează în cloud ('+nLocal+')</button></div>') : "";
+      }
     });
   }
 
@@ -3429,7 +3562,7 @@ load();
       +       '<div class="mfld" id="tvRangeEnd"><label>Până la</label><input type="date" id="tvEnd"></div>'
       +       '<div class="mfld" id="tvYearFld" style="display:none"><label>Anul</label><input type="number" id="tvYear" placeholder="ex: 2024" min="1950" max="2100"></div>'
       +       '<div class="mfld full"><label>Poză (opțional)</label><div class="tv-photo-row"><div class="tv-photo-prev" id="tvPhotoPrev">🗺️</div><label class="tv-photo-btn">📷 Alege poză<input type="file" id="tvPhotoInput" accept="image/*" hidden onchange="tvOnPhoto(this)"></label><button type="button" class="tv-photo-rm" id="tvPhotoRm" onclick="tvClearPhoto()" style="display:none">🗑 Elimină</button></div><div class="tv-photo-hint">Dacă nu pui poză, se ia automat una din Wikimedia pentru oraș.</div></div>'
-      +       '<div class="mfld full"><label>Cu cine am fost</label><div class="tv-pplpick"><div class="tv-pplpick-head"><button type="button" class="tv-chip" onclick="tvTogglePplPick()">👤 Alege persoane ▾</button><span id="tvPplCount" style="font-size:12px;color:var(--muted)"></span></div><div class="tv-pplpick-grid hidden" id="tvPplPick"></div></div></div>'
+      +       '<div class="mfld full"><label>Cu cine am fost</label><div class="tv-pplwrap"><div class="tv-pplpick"><div class="tv-pplpick-head"><button type="button" class="tv-chip" onclick="tvTogglePplPick()">👤 Alege persoane ▾</button><span id="tvPplCount" style="font-size:12px;color:var(--muted)"></span></div><div class="tv-pplpick-grid hidden" id="tvPplPick"></div></div><div class="tv-selstrip" id="tvSelStrip"></div></div></div>'
       +       '<div class="mfld full"><label>Note</label><textarea id="tvNotes" rows="2" placeholder="amintiri, detalii..."></textarea></div>'
       +     '</div>'
       +   '</div>'
@@ -3452,8 +3585,23 @@ load();
     if(!ppl.length){ g.innerHTML='<span style="font-size:12px;color:var(--muted)">Nicio persoană în agendă. Adaugă în „👥 Persoane".</span>'; return; }
     g.innerHTML=ppl.map(function(p){ var on=pickPeople.has(p.id); return '<button type="button" class="tv-pperson'+(on?" on":"")+'" onclick="tvTogglePickPerson(\''+p.id+'\')">'+avaHtml(p)+esc(p.name||"?")+'</button>'; }).join("");
     var c=$("tvPplCount"); if(c)c.textContent=pickPeople.size?(pickPeople.size+" selectate"):"";
+    renderSelStrip();
+  }
+  /* Fotografiile persoanelor selectate (pătrat, colțuri rotunde) — cu nume la hover + x de ștergere. */
+  function renderSelStrip(){
+    var s=$("tvSelStrip"); if(!s) return;
+    var sel=Array.from(pickPeople).map(personById).filter(Boolean);
+    if(!sel.length){ s.innerHTML=''; return; }
+    s.innerHTML=sel.map(function(p){
+      var nm=esc(p.name||"?");
+      var inner=p.photo?'<img src="'+p.photo+'" alt="'+nm+'">':'<span class="tv-selini">'+esc(ini(p.name))+'</span>';
+      return '<div class="tv-selphoto" title="'+nm+'">'+inner
+        + '<button type="button" class="tv-selrm" title="Elimină pe '+nm+'" onclick="tvRemovePickPerson(\''+p.id+'\')">×</button>'
+        + '<span class="tv-selname">'+nm+'</span></div>';
+    }).join("");
   }
   window.tvTogglePickPerson=function(id){ if(pickPeople.has(id))pickPeople.delete(id); else pickPeople.add(id); renderPplPick(); };
+  window.tvRemovePickPerson=function(id){ pickPeople.delete(id); renderPplPick(); };
 
   var geoT=null;
   window.tvGeoSearch=function(q){
@@ -3605,8 +3753,13 @@ load();
     var sec=document.createElement("section"); sec.className="page"; sec.id="pageTravel";
     sec.innerHTML=''
       + '<div class="tv-head"><h2>🌍 Travel</h2><span class="tv-km" id="tvKm">🧭 0 km</span>'
-      +   '<button class="primary tv-add" onclick="tvOpenAdd()">＋ Adaugă locație</button></div>'
+      +   '<div style="margin-left:auto;display:flex;gap:8px;flex-wrap:wrap">'
+      +     '<button onclick="tvExportJSON()" title="Exportă locațiile în JSON">⬇ JSON</button>'
+      +     '<button onclick="tvExportCSV()" title="Exportă locațiile în CSV">⬇ CSV</button>'
+      +     '<button class="primary" onclick="tvOpenAdd()">＋ Adaugă locație</button>'
+      +   '</div></div>'
       + '<div id="travelSyncNote"></div>'
+      + '<div id="travelDiag"></div>'
       + '<div class="tv-filters" id="travelFilters"></div>'
       + '<div class="tv-mapstyles" id="travelMapStyles"></div>'
       + '<div id="travelMap"></div>'
@@ -3632,7 +3785,7 @@ load();
   async function openTravel(){
     injectPage();
     var tt=$("tabTravel"); if(tt)tt.classList.add("active");
-    if(!loadedOnce){ await loadPlaces(); loadedOnce=true; }
+    if(!loadedOnce){ await loadPlaces(); await maybeMigrateLocal(); loadedOnce=true; }
     ensureMap(); renderAll();
     setTimeout(function(){ try{ map.invalidateSize(); }catch(e){} renderMap(); },120);
   }
