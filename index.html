@@ -2510,7 +2510,7 @@ async function integrityCheck(){
    - cars/lists/list_items/app_config: neschimbate (aveau deja coloane reale).
    =================================================================== */
 const cloud={cfg:null,client:null,session:null};
-const dl={ready:false,shadow:{},loading:false,saving:false,pending:false,saveT:null,loadedForUser:null,loggingIn:false,hasTagsColumn:false,hasPeopleTable:false,hasCarPhotoColumn:false,hasCarService:false,hasPeopleSocial:false,hasTodos:false,hasInventory:false};
+const dl={ready:false,shadow:{},loading:false,saving:false,pending:false,saveT:null,loadedForUser:null,loggingIn:false,hasTagsColumn:false,hasPeopleTable:false,hasCarPhotoColumn:false,hasCarService:false,hasPeopleSocial:false,hasTodos:false,hasInventory:false,hasInvSubcat:false};
 
 function canon(v){if(v===null||typeof v!=="object")return JSON.stringify(v);if(Array.isArray(v))return "["+v.map(canon).join(",")+"]";return "{"+Object.keys(v).sort().map(k=>JSON.stringify(k)+":"+canon(v[k])).join(",")+"}";}
 
@@ -2592,9 +2592,9 @@ function dlSnapshot(){
   cars.forEach(c=>{if(!c.id)c.id=uid();const dOrNull=v=>{const iso=toISO(v);return iso?iso:null;};const crow={name:c.name||null,icon:c.icon||null,vin:c.vin||null,plate:c.plate||null,itp:dOrNull(c.itp),rovinieta:dOrNull(c.rovinieta),rca:dOrNull(c.rca),seq:c._seq};if(dl.hasCarPhotoColumn)crow.photo=c.photo||null;if(dl.hasCarService){crow.last_service=dOrNull(c.lastService);crow.last_service_km=((c.lastServiceKm===""||c.lastServiceKm==null)?null:(parseInt(c.lastServiceKm,10)||null));crow.next_service=dOrNull(c.nextService);}m["cars:"+c.id]={table:"cars",id:c.id,row:crow};});
   if(dl.hasPeopleTable){people.forEach(p=>{if(!p.id)p.id=uid();const dON=v=>{const iso=toISO(v);return iso?iso:null;};const prow={name:p.name||null,relation:p.relation||null,birthday:dON(p.birthday),children:p.children||null,spouse:p.spouse||null,hobbies:p.hobbies||null,last_contact:dON(p.lastContact),photo:p.photo||null,notes:p.notes||null,seq:p._seq};if(dl.hasPeopleSocial){prow.instagram=p.instagram||null;prow.facebook=p.facebook||null;}m["people:"+p.id]={table:"people",id:p.id,row:prow};});}
   if(dl.hasTodos){todos.forEach(t=>{if(!t.id)t.id=uid();const dON=v=>{const iso=toISO(v);return iso?iso:null;};m["todos:"+t.id]={table:"todos",id:t.id,row:{text:t.text||null,done:!!t.done,priority:t.priority||null,due:dON(t.due),list:t.list||null,notes:t.notes||null,done_at:(t.doneAt?new Date(t.doneAt).toISOString():null),seq:t._seq}};});}
-  if(dl.hasInventory){inventory.forEach(it=>{if(!it.id)it.id=uid();const dON=v=>{const iso=toISO(v);return iso?iso:null;};m["inventory:"+it.id]={table:"inventory",id:it.id,row:{name:it.name||null,category:it.category||null,product_type:it.productType||null,brand:it.brand||null,model:it.model||null,serial:it.serial||null,purchase_date:dON(it.purchaseDate),price:((it.price===""||it.price==null)?null:(parseFloat(it.price)||0)),currency:it.currency||null,warranty_until:dON(it.warrantyUntil),store:it.store||null,location:it.location||null,quantity:((it.quantity===""||it.quantity==null)?null:(parseInt(it.quantity,10)||1)),notes:it.notes||null,photo:it.photo||null,seq:it._seq}};});}
+  if(dl.hasInventory){inventory.forEach(it=>{if(!it.id)it.id=uid();const dON=v=>{const iso=toISO(v);return iso?iso:null;};const ivrow={name:it.name||null,category:it.category||null,product_type:it.productType||null,brand:it.brand||null,model:it.model||null,serial:it.serial||null,purchase_date:dON(it.purchaseDate),price:((it.price===""||it.price==null)?null:(parseFloat(it.price)||0)),currency:it.currency||null,warranty_until:dON(it.warrantyUntil),store:it.store||null,location:it.location||null,quantity:((it.quantity===""||it.quantity==null)?null:(parseInt(it.quantity,10)||1)),notes:it.notes||null,photo:it.photo||null,seq:it._seq};if(dl.hasInvSubcat)ivrow.subcategory=it.subcategory||null;m["inventory:"+it.id]={table:"inventory",id:it.id,row:ivrow};});}
   shoppingLists.forEach(l=>{if(!l.id)l.id=uid();m["lists:"+l.id]={table:"lists",id:l.id,row:{name:l.name||null,icon:l.icon||null,created:toTs(l.created)}};(l.items||[]).forEach(it=>{if(!it.id)it.id=uid();m["list_items:"+it.id]={table:"list_items",id:it.id,row:{list_id:l.id,text:it.text||null,qty:(it.qty==null?null:String(it.qty)),done:!!it.done,done_at:toTs(it.doneAt),created:toTs(it.created)}};});});
-  m["app_config:main"]={table:"app_config",id:"main",row:{categories:CATEGORIES,settings:{baseCurrency:settings.baseCurrency,displayCurrency:settings.displayCurrency,rate:settings.rate,rateDate:settings.rateDate,rateSource:settings.rateSource},cat_budgets:catBudgets,rec_status:recStatus,backups:backups}};
+  m["app_config:main"]={table:"app_config",id:"main",row:{categories:CATEGORIES,settings:{baseCurrency:settings.baseCurrency,displayCurrency:settings.displayCurrency,rate:settings.rate,rateDate:settings.rateDate,rateSource:settings.rateSource,invCats:(settings.invCats||null)},cat_budgets:catBudgets,rec_status:recStatus,backups:backups}};
   return m;
 }
 
@@ -2625,6 +2625,7 @@ async function dlInitialLoad(force){
     try{const _ps=await cloud.client.from("people").select("instagram").limit(1);dl.hasPeopleSocial=!_ps.error;}catch(_e){dl.hasPeopleSocial=false;}
     try{const _td=await cloud.client.from("todos").select("id").limit(1);dl.hasTodos=!_td.error;}catch(_e){dl.hasTodos=false;}
     try{const _iv=await cloud.client.from("inventory").select("id").limit(1);dl.hasInventory=!_iv.error;}catch(_e){dl.hasInventory=false;}
+    try{const _is=await cloud.client.from("inventory").select("subcategory").limit(1);dl.hasInvSubcat=!_is.error;}catch(_e){dl.hasInvSubcat=false;}
     console.log("[load] coloana tags:",dl.hasTagsColumn);
     const tx=await dlLoadAll("transactions","*");
     const cr=await dlLoadAll("cars","*");
@@ -2643,7 +2644,7 @@ async function dlInitialLoad(force){
     let tdData=[]; if(dl.hasTodos){ try{ tdData=await dlLoadAll("todos","*"); }catch(e){ dl.hasTodos=false; console.warn("todos load:",e); } }
     todos=(tdData||[]).map(r=>({id:r.id,text:r.text||"",done:!!r.done,priority:r.priority||"normal",due:r.due||"",list:r.list||"",notes:r.notes||"",doneAt:(r.done_at?Date.parse(r.done_at):null),_seq:r.seq}));
     let ivData=[]; if(dl.hasInventory){ try{ ivData=await dlLoadAll("inventory","*"); }catch(e){ dl.hasInventory=false; console.warn("inventory load:",e); } }
-    inventory=(ivData||[]).map(r=>({id:r.id,name:r.name||"",category:r.category||"",productType:r.product_type||"",brand:r.brand||"",model:r.model||"",serial:r.serial||"",purchaseDate:r.purchase_date||"",price:(r.price==null?"":String(r.price)),currency:r.currency||"",warrantyUntil:r.warranty_until||"",store:r.store||"",location:r.location||"",quantity:(r.quantity==null?"":String(r.quantity)),notes:r.notes||"",photo:r.photo||"",_seq:r.seq}));
+    inventory=(ivData||[]).map(r=>({id:r.id,name:r.name||"",category:r.category||"",subcategory:r.subcategory||"",productType:r.product_type||"",brand:r.brand||"",model:r.model||"",serial:r.serial||"",purchaseDate:r.purchase_date||"",price:(r.price==null?"":String(r.price)),currency:r.currency||"",warrantyUntil:r.warranty_until||"",store:r.store||"",location:r.location||"",quantity:(r.quantity==null?"":String(r.quantity)),notes:r.notes||"",photo:r.photo||"",_seq:r.seq}));
     const lmap={};(ls||[]).forEach(r=>{lmap[r.id]={id:r.id,name:r.name,icon:r.icon,created:fromTs(r.created),items:[]};});
     (li||[]).forEach(r=>{const L=lmap[r.list_id];const it={id:r.id,text:r.text,qty:r.qty,done:r.done,doneAt:(r.done_at?fromTs(r.done_at):null),created:fromTs(r.created)};if(L)L.items.push(it);});
     shoppingLists=Object.values(lmap);
@@ -4474,15 +4475,82 @@ load();
   function money(v){ if(v===""||v==null||isNaN(parseFloat(v)))return "—"; var cur=""; try{cur=" "+(CUR_SYMBOL[settings.displayCurrency]||"");}catch(e){} return (Math.round(parseFloat(v)*100)/100).toLocaleString("ro-RO")+cur; }
   function refreshHomeIfActive(){ try{ var ph=$("pageHome"); if(ph&&ph.classList.contains("active")&&typeof window.showPage==="function") window.showPage("home"); }catch(e){} }
 
-  var CATS=[
-    ["electronice","📱 Electronice"],["electrocasnice","🔌 Electrocasnice"],["mobila","🛋️ Mobilă"],
-    ["scule","🔧 Scule"],["haine","👕 Haine"],["sport","⚽ Sport"],
-    ["bijuterii","💍 Bijuterii/Valori"],["auto","🚗 Auto"],["casa","🏠 Casă"],["altele","✨ Altele"]
+  /* ── categorii + subcategorii EDITABILE (sincronizate) ── */
+  var LS_CATS="fp2_inv_cats";
+  var DEFAULT_INV_CATS=[
+    {name:"📱 Electronice",subs:["Telefoane","Laptopuri","Tablete","TV","Audio","Accesorii"]},
+    {name:"🔌 Electrocasnice",subs:["Bucătărie","Curățenie","Climatizare"]},
+    {name:"🛋️ Mobilă",subs:[]},
+    {name:"🔧 Scule",subs:["Electrice","Manuale"]},
+    {name:"👕 Haine",subs:[]},
+    {name:"⚽ Sport",subs:[]},
+    {name:"💍 Bijuterii/Valori",subs:[]},
+    {name:"🚗 Auto",subs:[]},
+    {name:"🏠 Casă",subs:[]},
+    {name:"✨ Altele",subs:[]}
   ];
-  function catLabel(c){ for(var i=0;i<CATS.length;i++)if(CATS[i][0]===c)return CATS[i][1]; return "✨ Altele"; }
-  function catEmoji(c){ var l=catLabel(c); return l.split(" ")[0]; }
-
+  function loadCats(){
+    var c=null;
+    try{ if(typeof settings!=="undefined" && settings && Array.isArray(settings.invCats)) c=settings.invCats; }catch(e){}
+    if(!c){ try{ var l=JSON.parse(localStorage.getItem(LS_CATS)||"null"); if(Array.isArray(l))c=l; }catch(e){} }
+    window.invCats = (Array.isArray(c)&&c.length)? c.map(function(x){return {name:x.name,subs:Array.isArray(x.subs)?x.subs.slice():[]};}) : DEFAULT_INV_CATS.map(function(x){return {name:x.name,subs:x.subs.slice()};});
+  }
+  function saveCats(){
+    try{ if(typeof settings!=="undefined"){ settings.invCats=window.invCats; } }catch(e){}
+    try{ localStorage.setItem(LS_CATS,JSON.stringify(window.invCats)); }catch(e){}
+    try{ if(typeof persistSettings==="function")persistSettings(); else if(typeof markDirty==="function")markDirty(); }catch(e){}
+  }
+  function catList(){ if(!window.invCats)loadCats(); return window.invCats; }
+  function catNames(){ return catList().map(function(c){return c.name;}); }
+  function catObj(name){ return catList().find(function(c){return c.name===name;}); }
+  function subsFor(name){ var c=catObj(name); return c?(c.subs||[]):[]; }
+  function catLabel(c){ return c||"✨ Altele"; }              /* numele conține deja emoji */
+  function catEmoji(c){ return String(c||"✨").trim().split(" ")[0]; }
   function categoriesUsed(){ var s={}; (window.inventory||[]).forEach(function(x){ if(x.category)s[x.category]=1; }); return Object.keys(s); }
+
+  /* ==================== MANAGER CATEGORII / SUBCATEGORII ==================== */
+  window.ivOpenCatManager=function(){
+    loadCats();
+    if(!$("ivCatModal")){
+      var m=document.createElement("div"); m.className="modal-overlay"; m.id="ivCatModal";
+      m.setAttribute("onclick","if(event.target===this)ivCloseCatManager()");
+      m.innerHTML=''
+        + '<div class="modal">'
+        +   '<div class="modal-head"><h2>🗂️ Categorii inventar</h2><button class="x" onclick="ivCloseCatManager()">✕</button></div>'
+        +   '<div class="modal-body">'
+        +     '<div class="set-note" style="margin-bottom:10px">Adaugă/șterge categorii și subcategorii proprii. Pune un emoji la începutul numelui categoriei (ex: „🎮 Gaming"). Modificările se salvează și se sincronizează.</div>'
+        +     '<div id="ivCatEditor"></div>'
+        +     '<button class="type-add" style="margin-top:10px" onclick="ivAddCat()">+ Categorie nouă</button>'
+        +   '</div>'
+        +   '<div class="modal-foot"><button class="ghost" onclick="ivRestoreCats()">↺ Revino la implicit</button><div class="rightgrp"><button class="primary" onclick="ivCloseCatManager()">✓ Gata</button></div></div>'
+        + '</div>';
+      document.body.appendChild(m);
+    }
+    renderCatEditor();
+    $("ivCatModal").classList.add("open");
+  };
+  window.ivCloseCatManager=function(){ var m=$("ivCatModal"); if(m)m.classList.remove("open"); renderAll(); };
+  function renderCatEditor(){
+    var host=$("ivCatEditor"); if(!host)return;
+    host.innerHTML=catList().map(function(c,ci){
+      var subs=(c.subs||[]).map(function(t,ti){
+        return '<div class="type-item"><input value="'+esA(t)+'" onchange="ivRenameSub('+ci+','+ti+',this.value)"><button class="tdel" onclick="ivDelSub('+ci+','+ti+')">✕</button></div>';
+      }).join("");
+      return '<div class="cat-box"><div class="cat-boxhead">'
+        + '<input class="cat-name" value="'+esA(c.name)+'" onchange="ivRenameCat('+ci+',this.value)">'
+        + '<span class="cat-count">'+(c.subs||[]).length+' subcat.</span>'
+        + '<button class="cat-del" onclick="ivDelCat('+ci+')">🗑</button></div>'
+        + '<div class="type-list">'+subs+'<button class="type-add" onclick="ivAddSub('+ci+')">+ subcategorie</button></div></div>';
+    }).join("");
+  }
+  window.ivAddCat=function(){ var n="✨ Categorie nouă",k=1; while(catNames().indexOf(n)>=0)n="✨ Categorie nouă "+(++k); catList().push({name:n,subs:[]}); saveCats(); renderCatEditor(); };
+  window.ivRenameCat=function(ci,val){ val=(val||"").trim(); if(!val){renderCatEditor();return;} var old=catList()[ci].name; if(catNames().filter(function(x,i){return i!==ci;}).indexOf(val)>=0){ if(typeof toast==="function")toast("Există deja o categorie cu acest nume."); renderCatEditor(); return; } catList()[ci].name=val; (window.inventory||[]).forEach(function(x){ if(x.category===old)x.category=val; }); saveCats(); renderCatEditor(); };
+  window.ivDelCat=function(ci){ var c=catList()[ci]; var used=(window.inventory||[]).filter(function(x){return x.category===c.name;}).length; if(!confirm("Ștergi categoria „"+c.name+"”"+(used?(" ("+used+" produse o folosesc)?"):"?")))return; catList().splice(ci,1); saveCats(); renderCatEditor(); };
+  window.ivAddSub=function(ci){ var arr=catList()[ci].subs||(catList()[ci].subs=[]); var n="Subcategorie",k=1; while(arr.indexOf(n)>=0)n="Subcategorie "+(++k); arr.push(n); saveCats(); renderCatEditor(); };
+  window.ivRenameSub=function(ci,ti,val){ val=(val||"").trim(); if(!val){renderCatEditor();return;} var arr=catList()[ci].subs; var old=arr[ti]; if(arr.filter(function(x,i){return i!==ti;}).indexOf(val)>=0){renderCatEditor();return;} arr[ti]=val; (window.inventory||[]).forEach(function(x){ if(x.category===catList()[ci].name&&x.subcategory===old)x.subcategory=val; }); saveCats(); renderCatEditor(); };
+  window.ivDelSub=function(ci,ti){ var arr=catList()[ci].subs; arr.splice(ti,1); saveCats(); renderCatEditor(); };
+  window.ivRestoreCats=function(){ if(!confirm("Revii la categoriile implicite? Categoriile tale personalizate se pierd (produsele rămân)."))return; window.invCats=DEFAULT_INV_CATS.map(function(x){return {name:x.name,subs:x.subs.slice()};}); saveCats(); renderCatEditor(); };
+  window.ivOnCatChange=function(){ var sc=$("ivSubcat"); if(sc){ var cat=$("ivCategory").value; sc.innerHTML='<option value="">—</option>'+subsFor(cat).map(function(t){return '<option value="'+esc(t)+'">'+esc(t)+'</option>';}).join(""); } };
 
   /* warranty state */
   function warrantyState(x){
@@ -4541,7 +4609,8 @@ load();
     var host=$("invFilters"); if(!host) return;
     var used=categoriesUsed();
     var catChips='<button class="iv-chip'+(fCat===""?" sel":"")+'" onclick="ivSetCat(\'\')">Toate</button>'
-      + CATS.filter(function(c){return used.indexOf(c[0])>=0;}).map(function(c){ return '<button class="iv-chip'+(fCat===c[0]?" sel":"")+'" onclick="ivSetCat(\''+c[0]+'\')">'+c[1]+'</button>'; }).join("");
+      + catNames().filter(function(n){return used.indexOf(n)>=0;}).map(function(n){ return '<button class="iv-chip'+(fCat===n?" sel":"")+'" onclick="ivSetCat(\''+esA(n)+'\')">'+esc(n)+'</button>'; }).join("")
+      + '<button class="iv-chip" style="border-style:dashed" onclick="ivOpenCatManager()">🗂️ Editează categorii</button>';
     var wChips=[["","Toate"],["active","✅ Activă"],["soon","⏳ ≤30z"],["expired","⚠️ Expirată"],["none","— Fără"]].map(function(o){
       return '<button class="iv-chip'+(fWarranty===o[0]?" sel":"")+'" onclick="ivSetWarranty(\''+o[0]+'\')">'+o[1]+'</button>'; }).join("");
     var sortSel='<select class="iv-sel" onchange="ivSetSort(this.value)">'
@@ -4560,7 +4629,7 @@ load();
     grid.innerHTML=list.map(function(x){
       var w=warrantyState(x);
       var photo=x.photo?('<img src="'+x.photo+'" alt="">'):catEmoji(x.category);
-      var subParts=[x.brand,x.model].filter(Boolean).join(" ")||x.productType||"";
+      var subParts=[x.subcategory,x.brand,x.model].filter(Boolean).join(" · ")||x.productType||"";
       var q=(parseInt(x.quantity,10)||1);
       return '<div class="iv-card" onclick="ivOpenModal(\''+x.id+'\')">'
         + '<div class="iv-photo">'+photo
@@ -4580,7 +4649,7 @@ load();
   /* ==================== MODAL ==================== */
   function ensureModal(){
     if($("invModal")) return;
-    var catOpts=CATS.map(function(c){return '<option value="'+c[0]+'">'+c[1]+'</option>';}).join("");
+    var catOpts=catNames().map(function(n){return '<option value="'+esc(n)+'">'+esc(n)+'</option>';}).join("");
     var m=document.createElement("div"); m.className="modal-overlay"; m.id="invModal";
     m.setAttribute("onclick","if(event.target===this)ivCloseModal()");
     m.innerHTML=''
@@ -4590,7 +4659,8 @@ load();
       +     '<div class="iv-photo-row" style="margin-bottom:16px"><div class="iv-photo-prev" id="ivPhotoPrev">📦</div><div style="display:flex;flex-direction:column;gap:8px"><label class="iv-photo-btn">📷 Alege poză<input type="file" id="ivPhotoInput" accept="image/*" hidden onchange="ivOnPhoto(this)"></label><button type="button" class="iv-photo-rm" id="ivPhotoRm" onclick="ivClearPhoto()" style="display:none">🗑 Elimină poza</button><div class="iv-wchips" id="ivWchips"></div></div></div>'
       +     '<div class="mform">'
       +       '<div class="mfld full"><label>Nume produs</label><input id="ivName" placeholder="ex: Televizor living"></div>'
-      +       '<div class="mfld"><label>Categorie</label><select id="ivCategory">'+catOpts+'</select></div>'
+      +       '<div class="mfld"><label>Categorie <span onclick="ivOpenCatManager()" style="cursor:pointer;color:var(--accent);font-weight:600;text-transform:none;letter-spacing:0"> · ✏️ editează</span></label><select id="ivCategory" onchange="ivOnCatChange()">'+catOpts+'</select></div>'
+      +       '<div class="mfld"><label>Subcategorie</label><select id="ivSubcat"><option value="">—</option></select></div>'
       +       '<div class="mfld"><label>Tip produs</label><input id="ivType" placeholder="ex: Smart TV 55&quot;"></div>'
       +       '<div class="mfld"><label>Marcă</label><input id="ivBrand" placeholder="ex: Samsung"></div>'
       +       '<div class="mfld"><label>Model</label><input id="ivModel" placeholder="ex: QE55Q60"></div>'
@@ -4643,7 +4713,7 @@ load();
     $("ivModalTitle").textContent="Adaugă produs"; $("ivDelBtn").style.display="none";
     ["ivName","ivType","ivBrand","ivModel","ivSerial","ivStore","ivLocation","ivNotes","ivPrice"].forEach(function(id){ if($(id))$(id).value=""; });
     $("ivQty").value="1"; $("ivPurchase").value=new Date().toISOString().slice(0,10); $("ivWarranty").value=""; $("ivWarrantyQuick").value="";
-    $("ivCategory").value="electronice";
+    $("ivCategory").value=(catNames()[0]||""); ivOnCatChange(); $("ivSubcat").value="";
     ivClearPhoto(); fillLocDL(); ivRefreshWarranty();
     $("invModal").classList.add("open"); setTimeout(function(){$("ivName").focus();},80);
   };
@@ -4652,7 +4722,7 @@ load();
     var x=(window.inventory||[]).find(function(y){return y.id===id;}); if(!x)return;
     editId=id; tmpPhoto=x.photo||"";
     $("ivModalTitle").textContent=x.name||"Produs"; $("ivDelBtn").style.display="";
-    $("ivName").value=x.name||""; $("ivCategory").value=x.category||"electronice"; $("ivType").value=x.productType||"";
+    $("ivName").value=x.name||""; $("ivCategory").value=x.category||(catNames()[0]||""); ivOnCatChange(); $("ivSubcat").value=x.subcategory||""; $("ivType").value=x.productType||"";
     $("ivBrand").value=x.brand||""; $("ivModel").value=x.model||""; $("ivSerial").value=x.serial||"";
     $("ivQty").value=x.quantity||"1"; $("ivPurchase").value=toISOd(x.purchaseDate)||""; $("ivPrice").value=(x.price!=null?x.price:"");
     $("ivWarranty").value=toISOd(x.warrantyUntil)||""; $("ivWarrantyQuick").value="";
@@ -4667,7 +4737,7 @@ load();
     if(!name){ if(typeof toast==="function")toast("Pune un nume produsului."); return; }
     ensureArr();
     var obj={
-      id: editId||uid(), name:name, category:$("ivCategory").value, productType:$("ivType").value.trim(),
+      id: editId||uid(), name:name, category:$("ivCategory").value, subcategory:($("ivSubcat")?$("ivSubcat").value:""), productType:$("ivType").value.trim(),
       brand:$("ivBrand").value.trim(), model:$("ivModel").value.trim(), serial:$("ivSerial").value.trim(),
       quantity:(parseInt($("ivQty").value,10)||1), purchaseDate:toISOd($("ivPurchase").value)||"",
       price:($("ivPrice").value.trim()===""?"":String(parseFloat($("ivPrice").value)||0)),
@@ -4715,6 +4785,7 @@ load();
       +   '<div class="iv-actions">'
       +     '<button onclick="ivExportJSON()" title="Export JSON">⬇ JSON</button>'
       +     '<button onclick="ivExportCSV()" title="Export CSV">⬇ CSV</button>'
+      +     '<button onclick="ivOpenCatManager()" title="Categorii & subcategorii">🗂️ Categorii</button>'
       +     '<button class="primary" onclick="ivOpenAdd()">＋ Adaugă produs</button>'
       +   '</div></div>'
       + '<div class="iv-stats" id="invStats"></div>'
@@ -4722,7 +4793,7 @@ load();
       + '<div class="iv-grid" id="invGrid"></div>';
     if(pageSettings) wrap.insertBefore(sec, pageSettings); else wrap.appendChild(sec);
   }
-  function openInv(){ injectPage(); loadLocalIfEmpty(); renderAll(); }
+  function openInv(){ loadCats(); injectPage(); loadLocalIfEmpty(); renderAll(); }
   function wire(){
     var _show=window.showPage;
     window.showPage=function(p){
@@ -4732,7 +4803,7 @@ load();
       if(p==="inventory") openInv();
     };
   }
-  function init(){ try{ ensureArr(); loadLocalIfEmpty(); injectPage(); wire(); }catch(e){ console.warn("inventory init:",e); } }
+  function init(){ try{ ensureArr(); loadCats(); loadLocalIfEmpty(); injectPage(); wire(); }catch(e){ console.warn("inventory init:",e); } }
   if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",function(){ setTimeout(init,320); });
   else setTimeout(init,320);
 })();
