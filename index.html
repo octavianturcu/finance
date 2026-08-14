@@ -1559,8 +1559,27 @@ html[data-theme="night"] .tv-label span, html[data-theme="grape"] .tv-label span
 .iv-al-ic img{ width:100%;height:100%;object-fit:cover; }
 .iv-al-tx{ flex:1;min-width:0;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
 .iv-al .pin{ font-weight:800;font-size:11px;padding:3px 9px;border-radius:999px;white-space:nowrap; }
+/* ── vizualizare COMPACTĂ (doar poză pătrată + categorie) ── */
+.ivc-grid{ display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:12px; }
+.ivc-tile{ cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:stretch; }
+.ivc-photo{ position:relative;width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);transition:transform .16s var(--spring),box-shadow .18s,border-color .16s; }
+.ivc-tile:hover .ivc-photo{ transform:translateY(-3px);box-shadow:var(--e-float,0 22px 50px -18px rgba(0,0,0,.5));border-color:color-mix(in srgb,var(--accent) 40%,var(--line)); }
+.ivc-photo img{ width:100%;height:100%;object-fit:cover; }
+.ivc-emoji{ font-size:38px; }
+.ivc-dot{ position:absolute;top:7px;right:7px;width:12px;height:12px;border-radius:50%;border:2px solid var(--panel);box-shadow:0 1px 3px rgba(0,0,0,.4); }
+.ivc-dot.ok{ background:var(--green); } .ivc-dot.soon{ background:var(--amber); } .ivc-dot.exp{ background:var(--red); }
+.ivc-cat{ font-size:11px;font-weight:700;color:var(--muted);text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap; }
+/* ── grupare pe subcategorii ── */
+.iv-groups{ display:flex;flex-direction:column;gap:22px; }
+.iv-group-head{ display:flex;align-items:center;gap:10px;margin-bottom:12px;padding-bottom:8px;border-bottom:1px solid var(--line); }
+.iv-gh-cat{ font-weight:800;font-size:15px;letter-spacing:-.01em; }
+.iv-gh-sub{ font-size:12.5px;color:var(--accent);font-weight:700;background:color-mix(in srgb,var(--accent) 12%,transparent);border:1px solid color-mix(in srgb,var(--accent) 30%,var(--line));border-radius:999px;padding:3px 11px; }
+.iv-gh-count{ margin-left:auto;font-size:12px;color:var(--muted);font-weight:700;background:var(--panel2);border:1px solid var(--line);border-radius:999px;padding:2px 10px; }
+.iv-viewseg button{ font-size:12.5px; }
 @media (max-width:820px){
   .iv-grid{ grid-template-columns:1fr 1fr;gap:10px; }
+  .ivc-grid{ grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:9px; }
+  .ivc-emoji{ font-size:30px; }
   .iv-photo{ height:120px; }
   .iv-name{ font-size:14px; }
   .iv-body{ padding:10px 11px; }
@@ -1942,7 +1961,7 @@ let filtersOpen=(()=>{try{return localStorage.getItem("fp2_filters_open")==="1";
 function toggleFiltersOpen(){filtersOpen=!filtersOpen;try{localStorage.setItem("fp2_filters_open",filtersOpen?"1":"0");}catch(e){}renderFilters();}
 function optionsFor(id){if(id==="fYear"){const s=new Set();rows.forEach(r=>{const y=toISO(r.Data).slice(0,4);if(y)s.add(y);});return [...s].sort();}if(id==="fMonth")return ["01","02","03","04","05","06","07","08","09","10","11","12"];if(id==="fCateg")return Object.keys(CATEGORIES);if(id==="fType"){if(filterState.fCateg&&CATEGORIES[filterState.fCateg])return CATEGORIES[filterState.fCateg].slice();const s=new Set();Object.values(CATEGORIES).forEach(a=>a.forEach(t=>s.add(t)));return [...s];}if(id==="fStatus")return STATUSES;if(id==="fRec")return ["Y","N"];if(id==="fPM")return ["revenue","expense"];if(id==="fTags")return allTags();return [];}
 function matchExcept(r,exceptId){for(const d of FDEFS){if(d.id===exceptId)continue;if(d.id==="fTags"){const v=filterState.fTags;if(v&&!parseTags(r.Tags).includes(v))return false;continue;}const v=filterState[d.id];if(v&&d.get(r)!==v)return false;}if(tagFilter&&!parseTags(r.Tags).includes(tagFilter))return false;if(infoQuery&&!rowMatchesQuery(r,infoQuery))return false;return true;}
-function optionAvailable(id,value){const def=FDEFS.find(d=>d.id===id);return rows.some(r=>matchExcept(r,id)&&def.get(r)===value);}
+function optionAvailable(id,value){const def=FDEFS.find(d=>d.id===id);if(id==="fTags")return rows.some(r=>matchExcept(r,id)&&parseTags(r.Tags).includes(value));return rows.some(r=>matchExcept(r,id)&&def.get(r)===value);}
 function setFilterMode(mode){filterMode=mode;try{localStorage.setItem(FMODE_KEY,mode);}catch(e){}renderFilters();}
 function setFilter(id,value){filterState[id]=value;if(id==="fCateg"){const opts=optionsFor("fType");if(filterState.fType&&!opts.includes(filterState.fType))filterState.fType="";}page=0;renderFilters();render();}
 function clearFilters(){FDEFS.forEach(d=>filterState[d.id]="");infoQuery="";page=0;renderFilters();render();}
@@ -2371,12 +2390,10 @@ function quickAdd(categ,type){
 function refreshTagsDatalist(){const dl2=document.getElementById("tagsDatalist");if(dl2)dl2.innerHTML=allTags().map(t=>`<option value="${escAttr(t)}">`).join("");}
 function setTagFilter(t){tagFilter=(tagFilter===t)?"":t;page=0;renderFilters();render();toast(tagFilter?("🏷️ Filtru tag: "+t):"Filtru tag eliminat");}
 function renderTagBar(){
+  /* Tag-urile sunt gestionate DOAR din secțiunea de filtre (fTags).
+     Bara de tag-uri de sub „Adăugare rapidă" a fost eliminată la cerere. */
   const host=document.getElementById("tagBar");if(!host)return;
-  const tags=allTags();
-  if(!tags.length){host.innerHTML="";host.style.display="none";return;}
-  host.style.display="";
-  host.innerHTML=`<span style="font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;font-weight:700;margin-right:4px">🏷️ Tags</span>`+
-    tags.map(t=>`<button class="fchip ${tagFilter===t?"sel":""}" onclick="setTagFilter('${escJs(t)}')">${esc(t)}</button>`).join("");
+  host.innerHTML="";host.style.display="none";
 }
 
 /* ---- RAPORT LUNAR ---- */
@@ -4461,6 +4478,10 @@ load();
   var LS_KEY="fp2_inventory";
   var editId=null, tmpPhoto="";
   var fCat="", fWarranty="", fQuery="", fSort="recent";
+  var ivView=(function(){try{return localStorage.getItem("fp2_inv_view")||"cards";}catch(e){return "cards";}})();
+  var ivGroup=(function(){try{return localStorage.getItem("fp2_inv_group")==="1";}catch(e){return false;}})();
+  window.ivSetView=function(v){ ivView=v; try{localStorage.setItem("fp2_inv_view",v);}catch(e){} renderAll(); };
+  window.ivToggleGroup=function(){ ivGroup=!ivGroup; try{localStorage.setItem("fp2_inv_group",ivGroup?"1":"0");}catch(e){} renderAll(); };
 
   function $(id){ return document.getElementById(id); }
   function esc(v){ return (v==null?"":String(v)).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;"}[c];}); }
@@ -4616,33 +4637,73 @@ load();
     var sortSel='<select class="iv-sel" onchange="ivSetSort(this.value)">'
       + [["recent","🕒 Recent achiziționate"],["name","🔤 Nume (A-Z)"],["price_desc","↓ Preț (mare→mic)"],["price_asc","↑ Preț (mic→mare)"],["warranty","🛡️ Garanție apropiată"]].map(function(o){ return '<option value="'+o[0]+'"'+(fSort===o[0]?" selected":"")+'>'+o[1]+'</option>'; }).join("")
       + '</select>';
+    var viewSeg='<div class="fmode iv-viewseg"><button class="'+(ivView==="cards"?"active":"")+'" onclick="ivSetView(\'cards\')">▦ Detaliat</button><button class="'+(ivView==="compact"?"active":"")+'" onclick="ivSetView(\'compact\')">▪ Compact</button></div>';
+    var groupBtn='<button class="iv-chip'+(ivGroup?" sel":"")+'" onclick="ivToggleGroup()">🗂️ Grupează pe subcategorii</button>';
     host.innerHTML=
         '<div class="iv-frow"><span class="iv-flabel">Categorie</span>'+catChips+'</div>'
       + '<div class="iv-frow"><span class="iv-flabel">Garanție</span>'+wChips+'<div class="iv-search" style="margin-left:auto">🔎<input placeholder="Caută nume, marcă, model, serie..." value="'+esc(fQuery)+'" oninput="ivSearch(this.value)"></div></div>'
-      + '<div class="iv-frow"><span class="iv-flabel">Sortare</span>'+sortSel+'</div>';
+      + '<div class="iv-frow"><span class="iv-flabel">Sortare</span>'+sortSel+'</div>'
+      + '<div class="iv-frow"><span class="iv-flabel">Afișare</span>'+viewSeg+groupBtn+'</div>';
+  }
+  function cardHTML(x){
+    var w=warrantyState(x);
+    var photo=x.photo?('<img src="'+x.photo+'" alt="">'):catEmoji(x.category);
+    var subParts=[x.subcategory,x.brand,x.model].filter(Boolean).join(" · ")||x.productType||"";
+    var q=(parseInt(x.quantity,10)||1);
+    return '<div class="iv-card" onclick="ivOpenModal(\''+x.id+'\')">'
+      + '<div class="iv-photo">'+photo
+      +   (x.category?'<span class="iv-cat-badge">'+esc(catLabel(x.category))+'</span>':'')
+      +   (w.txt?'<span class="iv-wbadge '+w.cls+'">'+w.txt+'</span>':'')
+      + '</div>'
+      + '<div class="iv-body">'
+      +   '<div class="iv-name">'+esc(x.name||"(fără nume)")+(q>1?' <span style="color:var(--muted);font-weight:600">×'+q+'</span>':'')+'</div>'
+      +   (subParts?'<div class="iv-sub">'+esc(subParts)+'</div>':'')
+      +   '<div class="iv-row2"><span class="iv-price">'+money(x.price)+'</span>'
+      +     (x.location?'<span class="iv-loc">📍 '+esc(x.location)+'</span>':(x.purchaseDate?'<span class="iv-loc">🗓️ '+esc(dmy(toISOd(x.purchaseDate)))+'</span>':''))+'</div>'
+      + '</div></div>';
+  }
+  function compactHTML(x){
+    var photo=x.photo?('<img src="'+x.photo+'" alt="">'):('<span class="ivc-emoji">'+catEmoji(x.category)+'</span>');
+    var w=warrantyState(x);
+    return '<div class="ivc-tile" onclick="ivOpenModal(\''+x.id+'\')" title="'+esc(x.name||"")+'">'
+      + '<div class="ivc-photo">'+photo
+      +   (w.cls?'<span class="ivc-dot '+w.cls+'"></span>':'')
+      + '</div>'
+      + '<div class="ivc-cat">'+esc(catLabel(x.category))+'</div>'
+      + '</div>';
+  }
+  function renderGroup(list){
+    /* grupare pe Categorie › Subcategorie */
+    var groups={}, order=[];
+    list.forEach(function(x){
+      var cat=x.category||"✨ Altele";
+      var sub=x.subcategory||"— fără subcategorie";
+      var key=cat+" ›› "+sub;
+      if(!groups[key]){ groups[key]={cat:cat,sub:sub,items:[]}; order.push(key); }
+      groups[key].items.push(x);
+    });
+    order.sort(function(a,b){ return a.localeCompare(b,"ro"); });
+    var compact=(ivView==="compact");
+    return order.map(function(key){
+      var g=groups[key];
+      var inner=g.items.map(compact?compactHTML:cardHTML).join("");
+      return '<div class="iv-group">'
+        + '<div class="iv-group-head"><span class="iv-gh-cat">'+esc(g.cat)+'</span>'
+        +   '<span class="iv-gh-sub">'+esc(g.sub)+'</span>'
+        +   '<span class="iv-gh-count">'+g.items.length+'</span></div>'
+        + '<div class="'+(compact?"ivc-grid":"iv-grid")+'">'+inner+'</div>'
+        + '</div>';
+    }).join("");
   }
   function renderList(){
     var grid=$("invGrid"); if(!grid) return;
     renderStats();
     var list=sortList(filtered());
-    if(!list.length){ grid.innerHTML='<div class="iv-empty"><div style="font-size:44px">📦</div><p><b>Niciun produs</b></p><p>Apasă <b>＋ Adaugă produs</b> ca să începi inventarul.</p></div>'; return; }
-    grid.innerHTML=list.map(function(x){
-      var w=warrantyState(x);
-      var photo=x.photo?('<img src="'+x.photo+'" alt="">'):catEmoji(x.category);
-      var subParts=[x.subcategory,x.brand,x.model].filter(Boolean).join(" · ")||x.productType||"";
-      var q=(parseInt(x.quantity,10)||1);
-      return '<div class="iv-card" onclick="ivOpenModal(\''+x.id+'\')">'
-        + '<div class="iv-photo">'+photo
-        +   (x.category?'<span class="iv-cat-badge">'+esc(catLabel(x.category))+'</span>':'')
-        +   (w.txt?'<span class="iv-wbadge '+w.cls+'">'+w.txt+'</span>':'')
-        + '</div>'
-        + '<div class="iv-body">'
-        +   '<div class="iv-name">'+esc(x.name||"(fără nume)")+(q>1?' <span style="color:var(--muted);font-weight:600">×'+q+'</span>':'')+'</div>'
-        +   (subParts?'<div class="iv-sub">'+esc(subParts)+'</div>':'')
-        +   '<div class="iv-row2"><span class="iv-price">'+money(x.price)+'</span>'
-        +     (x.location?'<span class="iv-loc">📍 '+esc(x.location)+'</span>':(x.purchaseDate?'<span class="iv-loc">🗓️ '+esc(dmy(toISOd(x.purchaseDate)))+'</span>':''))+'</div>'
-        + '</div></div>';
-    }).join("");
+    if(!list.length){ grid.className=""; grid.innerHTML='<div class="iv-empty"><div style="font-size:44px">📦</div><p><b>Niciun produs</b></p><p>Apasă <b>＋ Adaugă produs</b> ca să începi inventarul.</p></div>'; return; }
+    if(ivGroup){ grid.className="iv-groups"; grid.innerHTML=renderGroup(list); return; }
+    var compact=(ivView==="compact");
+    grid.className=compact?"ivc-grid":"iv-grid";
+    grid.innerHTML=list.map(compact?compactHTML:cardHTML).join("");
   }
   function renderAll(){ renderFilters(); renderCount(); renderList(); }
 
@@ -4790,7 +4851,7 @@ load();
       +   '</div></div>'
       + '<div class="iv-stats" id="invStats"></div>'
       + '<div class="iv-filters" id="invFilters"></div>'
-      + '<div class="iv-grid" id="invGrid"></div>';
+      + '<div id="invGrid"></div>';
     if(pageSettings) wrap.insertBefore(sec, pageSettings); else wrap.appendChild(sec);
   }
   function openInv(){ loadCats(); injectPage(); loadLocalIfEmpty(); renderAll(); }
