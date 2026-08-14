@@ -1561,6 +1561,12 @@ html[data-theme="night"] .tv-label span, html[data-theme="grape"] .tv-label span
 .iv-al .pin{ font-weight:800;font-size:11px;padding:3px 9px;border-radius:999px;white-space:nowrap; }
 /* ── vizualizare COMPACTĂ (doar poză pătrată + categorie) ── */
 .ivc-grid{ display:grid;grid-template-columns:repeat(auto-fill,minmax(108px,1fr));gap:12px; }
+/* densitate fixă (când e aleasă din meniu): --ivc-cols coloane pe rând */
+#invGrid[style*="--ivc-cols"].ivc-grid{ grid-template-columns:repeat(var(--ivc-cols),1fr); }
+#invGrid[style*="--ivc-cols"].iv-groups .ivc-grid{ grid-template-columns:repeat(var(--ivc-cols),1fr); }
+/* numele produsului la hover, peste poză */
+.ivc-name{ position:absolute;left:0;right:0;bottom:0;padding:14px 6px 6px;font-size:11px;font-weight:700;color:#fff;text-align:center;line-height:1.25;background:linear-gradient(transparent,rgba(0,0,0,.82));opacity:0;transform:translateY(6px);transition:.16s;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden; }
+.ivc-tile:hover .ivc-name{ opacity:1;transform:translateY(0); }
 .ivc-tile{ cursor:pointer;display:flex;flex-direction:column;gap:6px;align-items:stretch; }
 .ivc-photo{ position:relative;width:100%;aspect-ratio:1/1;border-radius:16px;overflow:hidden;background:var(--panel2);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;box-shadow:var(--shadow);transition:transform .16s var(--spring),box-shadow .18s,border-color .16s; }
 .ivc-tile:hover .ivc-photo{ transform:translateY(-3px);box-shadow:var(--e-float,0 22px 50px -18px rgba(0,0,0,.5));border-color:color-mix(in srgb,var(--accent) 40%,var(--line)); }
@@ -4005,7 +4011,7 @@ load();
     var f=input.files&&input.files[0]; if(!f) return;
     var rd=new FileReader();
     rd.onload=function(e){ var img=new Image(); img.onload=function(){
-      var max=400, s=Math.min(max/img.width,max/img.height,1), cw=Math.round(img.width*s), ch=Math.round(img.height*s);
+      var max=256, s=Math.min(max/img.width,max/img.height,1), cw=Math.round(img.width*s), ch=Math.round(img.height*s);
       var cv=document.createElement("canvas"); cv.width=cw; cv.height=ch; cv.getContext("2d").drawImage(img,0,0,cw,ch);
       tmpPhoto=cv.toDataURL("image/jpeg",0.72); var pv=$("tvPhotoPrev"); if(pv)pv.innerHTML='<img src="'+tmpPhoto+'" alt="">'; $("tvPhotoRm").style.display="";
     }; img.src=e.target.result; };
@@ -4477,7 +4483,10 @@ load();
   "use strict";
   var LS_KEY="fp2_inventory";
   var editId=null, tmpPhoto="";
-  var fCat="", fWarranty="", fQuery="", fSort="recent";
+  var fCat="", fSubcat="", fWarranty="", fQuery="", fSort="recent";
+  var ivDensity=(function(){try{return parseInt(localStorage.getItem("fp2_inv_density"),10)||0;}catch(e){return 0;}})(); /* 0=auto */
+  window.ivSetDensity=function(n){ ivDensity=parseInt(n,10)||0; try{localStorage.setItem("fp2_inv_density",String(ivDensity));}catch(e){} applyDensity(); };
+  function applyDensity(){ var g=$("invGrid"); if(g){ if(ivDensity>0)g.style.setProperty("--ivc-cols",ivDensity); else g.style.removeProperty("--ivc-cols"); } }
   var ivView=(function(){try{return localStorage.getItem("fp2_inv_view")||"cards";}catch(e){return "cards";}})();
   var ivGroup=(function(){try{return localStorage.getItem("fp2_inv_group")==="1";}catch(e){return false;}})();
   window.ivSetView=function(v){ ivView=v; try{localStorage.setItem("fp2_inv_view",v);}catch(e){} renderAll(); };
@@ -4583,13 +4592,17 @@ load();
   }
 
   /* ==================== FILTER ==================== */
-  window.ivSetCat=function(c){ fCat=c; renderAll(); };
+  window.ivSetCat=function(c){ fCat=c; fSubcat=""; renderAll(); };
+  window.ivSetSubcat=function(sc){ fSubcat=sc; renderAll(); };
   window.ivSetWarranty=function(w){ fWarranty=w; renderAll(); };
   window.ivSearch=function(v){ fQuery=(v||"").toLowerCase(); renderList(); };
   window.ivSetSort=function(v){ fSort=v; renderList(); };
+  /* subcategoriile care apar în produse pentru categoria selectată */
+  function subcatsInUse(cat){ var s={}; (window.inventory||[]).forEach(function(x){ if((!cat||x.category===cat)&&x.subcategory)s[x.subcategory]=1; }); return Object.keys(s).sort(function(a,b){return a.localeCompare(b,"ro");}); }
   function filtered(){
     return (window.inventory||[]).filter(function(x){
       if(fCat && (x.category||"")!==fCat) return false;
+      if(fSubcat && (x.subcategory||"")!==fSubcat) return false;
       if(fWarranty){
         var d=daysTo(x.warrantyUntil);
         if(fWarranty==="active" && !(d!=null && d>=0)) return false;
@@ -4637,13 +4650,28 @@ load();
     var sortSel='<select class="iv-sel" onchange="ivSetSort(this.value)">'
       + [["recent","🕒 Recent achiziționate"],["name","🔤 Nume (A-Z)"],["price_desc","↓ Preț (mare→mic)"],["price_asc","↑ Preț (mic→mare)"],["warranty","🛡️ Garanție apropiată"]].map(function(o){ return '<option value="'+o[0]+'"'+(fSort===o[0]?" selected":"")+'>'+o[1]+'</option>'; }).join("")
       + '</select>';
+    /* subcategorii — doar cele care există în produse (din categoria aleasă, dacă e una) */
+    var subs=subcatsInUse(fCat);
+    var subRow="";
+    if(subs.length){
+      var subChips='<button class="iv-chip'+(fSubcat===""?" sel":"")+'" onclick="ivSetSubcat(\'\')">Toate</button>'
+        + subs.map(function(sn){ return '<button class="iv-chip'+(fSubcat===sn?" sel":"")+'" onclick="ivSetSubcat(\''+esA(sn)+'\')">'+esc(sn)+'</button>'; }).join("");
+      subRow='<div class="iv-frow"><span class="iv-flabel">Subcategorie</span>'+subChips+'</div>';
+    }
     var viewSeg='<div class="fmode iv-viewseg"><button class="'+(ivView==="cards"?"active":"")+'" onclick="ivSetView(\'cards\')">▦ Detaliat</button><button class="'+(ivView==="compact"?"active":"")+'" onclick="ivSetView(\'compact\')">▪ Compact</button></div>';
     var groupBtn='<button class="iv-chip'+(ivGroup?" sel":"")+'" onclick="ivToggleGroup()">🗂️ Grupează pe subcategorii</button>';
+    var densSel="";
+    if(ivView==="compact"){
+      densSel='<span class="iv-flabel" style="margin-left:8px">Densitate</span><select class="iv-sel" onchange="ivSetDensity(this.value)">'
+        + [["0","Auto"],["3","3 / rând"],["4","4 / rând"],["5","5 / rând"],["6","6 / rând"],["8","8 / rând"],["10","10 / rând"]].map(function(o){ return '<option value="'+o[0]+'"'+(String(ivDensity)===o[0]?" selected":"")+'>'+o[1]+'</option>'; }).join("")
+        + '</select>';
+    }
     host.innerHTML=
         '<div class="iv-frow"><span class="iv-flabel">Categorie</span>'+catChips+'</div>'
+      + subRow
       + '<div class="iv-frow"><span class="iv-flabel">Garanție</span>'+wChips+'<div class="iv-search" style="margin-left:auto">🔎<input placeholder="Caută nume, marcă, model, serie..." value="'+esc(fQuery)+'" oninput="ivSearch(this.value)"></div></div>'
       + '<div class="iv-frow"><span class="iv-flabel">Sortare</span>'+sortSel+'</div>'
-      + '<div class="iv-frow"><span class="iv-flabel">Afișare</span>'+viewSeg+groupBtn+'</div>';
+      + '<div class="iv-frow"><span class="iv-flabel">Afișare</span>'+viewSeg+groupBtn+densSel+'</div>';
   }
   function cardHTML(x){
     var w=warrantyState(x);
@@ -4665,9 +4693,11 @@ load();
   function compactHTML(x){
     var photo=x.photo?('<img src="'+x.photo+'" alt="">'):('<span class="ivc-emoji">'+catEmoji(x.category)+'</span>');
     var w=warrantyState(x);
+    var nm=esc(x.name||"(fără nume)");
     return '<div class="ivc-tile" onclick="ivOpenModal(\''+x.id+'\')" title="'+esc(x.name||"")+'">'
       + '<div class="ivc-photo">'+photo
       +   (w.cls?'<span class="ivc-dot '+w.cls+'"></span>':'')
+      +   '<span class="ivc-name">'+nm+'</span>'
       + '</div>'
       + '<div class="ivc-cat">'+esc(catLabel(x.category))+'</div>'
       + '</div>';
@@ -4700,10 +4730,11 @@ load();
     renderStats();
     var list=sortList(filtered());
     if(!list.length){ grid.className=""; grid.innerHTML='<div class="iv-empty"><div style="font-size:44px">📦</div><p><b>Niciun produs</b></p><p>Apasă <b>＋ Adaugă produs</b> ca să începi inventarul.</p></div>'; return; }
-    if(ivGroup){ grid.className="iv-groups"; grid.innerHTML=renderGroup(list); return; }
+    if(ivGroup){ grid.className="iv-groups"; grid.innerHTML=renderGroup(list); applyDensity(); return; }
     var compact=(ivView==="compact");
     grid.className=compact?"ivc-grid":"iv-grid";
     grid.innerHTML=list.map(compact?compactHTML:cardHTML).join("");
+    applyDensity();
   }
   function renderAll(){ renderFilters(); renderCount(); renderList(); }
 
@@ -4762,7 +4793,7 @@ load();
     var f=input.files&&input.files[0]; if(!f) return;
     var rd=new FileReader();
     rd.onload=function(e){ var img=new Image(); img.onload=function(){
-      var max=500, s=Math.min(max/img.width,max/img.height,1), cw=Math.round(img.width*s), ch=Math.round(img.height*s);
+      var max=256, s=Math.min(max/img.width,max/img.height,1), cw=Math.round(img.width*s), ch=Math.round(img.height*s);
       var cv=document.createElement("canvas"); cv.width=cw; cv.height=ch; cv.getContext("2d").drawImage(img,0,0,cw,ch);
       tmpPhoto=cv.toDataURL("image/jpeg",0.75); var pv=$("ivPhotoPrev"); if(pv)pv.innerHTML='<img src="'+tmpPhoto+'" alt="">'; $("ivPhotoRm").style.display="";
     }; img.src=e.target.result; };
