@@ -4489,7 +4489,7 @@ load();
   "use strict";
   var LS_KEY="fp2_inventory";
   var editId=null, tmpPhoto="";
-  var fCat="", fSubcat="", fWarranty="", fQuery="", fSort="recent";
+  var fCat="", fSubcat="", fWarranty="", fDeal="", fQuery="", fSort="recent";
   var ivDensity=(function(){try{return parseInt(localStorage.getItem("fp2_inv_density"),10)||0;}catch(e){return 0;}})(); /* 0=auto */
   window.ivSetDensity=function(n){ ivDensity=parseInt(n,10)||0; try{localStorage.setItem("fp2_inv_density",String(ivDensity));}catch(e){} applyDensity(); };
   function applyDensity(){ var g=$("invGrid"); if(g){ if(ivDensity>0)g.style.setProperty("--ivc-cols",ivDensity); else g.style.removeProperty("--ivc-cols"); } }
@@ -4601,6 +4601,7 @@ load();
   window.ivSetCat=function(c){ fCat=c; fSubcat=""; renderAll(); };
   window.ivSetSubcat=function(sc){ fSubcat=sc; renderAll(); };
   window.ivSetWarranty=function(w){ fWarranty=w; renderAll(); };
+  window.ivSetDeal=function(d){ fDeal=d; renderAll(); };
   window.ivSearch=function(v){ fQuery=(v||"").toLowerCase(); renderList(); };
   window.ivSetSort=function(v){ fSort=v; renderList(); };
   /* subcategoriile care apar în produse pentru categoria selectată */
@@ -4616,6 +4617,7 @@ load();
         if(fWarranty==="expired" && !(d!=null && d<0)) return false;
         if(fWarranty==="none" && d!=null) return false;
       }
+      if(fDeal && (x.dealStatus||"keep")!==fDeal) return false;
       if(fQuery){ var hay=[x.name,x.brand,x.model,x.productType,x.serial,x.store,x.location,x.notes,catLabel(x.category)].map(function(v){return String(v||"").toLowerCase();}).join(" "); if(hay.indexOf(fQuery)<0)return false; }
       return true;
     });
