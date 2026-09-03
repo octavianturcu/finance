@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verificare coduri TVA (VIES)</title>
+<style>
+  :root{
+    --brand:#0b5cab;--brand-dark:#083f77;
+    --ok:#1a8f3c;--ok-bg:#e6f6ec;--err:#c0392b;--err-bg:#fdecea;
+    --warn:#b7791f;--warn-bg:#fdf6e3;--bg:#f4f6f9;--card:#fff;
+    --border:#e2e8f0;--text:#1f2933;--muted:#64748b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;font-family:"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--text);
+    display:flex;justify-content:center;padding:32px 16px;min-height:100vh}
+  .app{width:100%;max-width:820px}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:14px;
+    box-shadow:0 8px 28px rgba(15,23,42,.06);padding:26px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:4px}
+  .badge{background:var(--brand);color:#fff;font-weight:700;border-radius:10px;padding:8px 12px;font-size:14px;letter-spacing:.5px}
+  h1{font-size:22px;margin:0}
+  p.sub{color:var(--muted);margin:6px 0 20px;font-size:14px;line-height:1.5}
+  /* taburi */
+  .tabs{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid var(--border)}
+  .tab{padding:10px 16px;cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px}
+  .tab.active{color:var(--brand);border-bottom-color:var(--brand)}
+  .panel{display:none}.panel.active{display:block}
+  label{display:block;font-weight:600;font-size:13px;margin-bottom:6px}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  select,input,textarea{width:100%;padding:12px;border:1px solid var(--border);border-radius:10px;font-size:15px;background:#fff;color:var(--text);font-family:inherit}
+  textarea{min-height:150px;resize:vertical;font-family:"Consolas",monospace;font-size:14px;line-height:1.6}
+  .col-country{flex:0 0 150px}.col-number{flex:1 1 200px}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--brand);box-shadow:0 0 0 3px rgba(11,92,171,.15)}
+  button{margin-top:16px;width:100%;padding:13px;border:none;border-radius:10px;background:var(--brand);color:#fff;font-size:16px;font-weight:600;cursor:pointer;transition:background .15s}
+  button:hover{background:var(--brand-dark)}button:disabled{opacity:.6;cursor:not-allowed}
+  .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.5}
+  .result{margin-top:22px;border-radius:12px;padding:18px;display:none;border:1px solid transparent}
+  .result.show{display:block}
+  .result h2{margin:0 0 4px;font-size:18px}
+  .result.valid{background:var(--ok-bg);border-color:#bfe6cb}.result.valid h2{color:var(--ok)}
+  .result.invalid{background:var(--err-bg);border-color:#f5c6c0}.result.invalid h2{color:var(--err)}
+  .result.warn{background:var(--warn-bg);border-color:#f0e0b6}.result.warn h2{color:var(--warn)}
+  .details{margin-top:12px;font-size:14px;line-height:1.6}
+  .details div{display:flex;gap:8px;padding:3px 0;border-top:1px dashed rgba(0,0,0,.08)}
+  .details span.k{font-weight:600;min-width:130px;color:var(--muted)}
+  .details span.v{white-space:pre-line}
+  /* tabel batch */
+  .summary{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
+  .chip{padding:8px 14px;border-radius:20px;font-size:13px;font-weight:600}
+  .chip.t{background:#eef2f7;color:#334155}
+  .chip.v{background:var(--ok-bg);color:var(--ok)}
+  .chip.i{background:var(--err-bg);color:var(--err)}
+  .chip.e{background:var(--warn-bg);color:var(--warn)}
+  table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top}
+  th{background:#f8fafc;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  td.st{font-weight:700;white-space:nowrap}
+  td.st.ok{color:var(--ok)}td.st.no{color:var(--err)}td.st.er{color:var(--warn)}
+  .toolbar{display:flex;justify-content:flex-end;margin-top:10px}
+  .btn-sm{width:auto;margin:0;padding:8px 14px;font-size:13px;background:#eef2f7;color:var(--brand)}
+  .btn-sm:hover{background:#e2e8f0}
+  .spinner{display:inline-block;width:16px;height:16px;border:2px solid rgba(255,255,255,.5);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;vertical-align:-3px;margin-right:8px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  footer{margin-top:18px;font-size:11px;color:var(--muted);text-align:center;line-height:1.5}
+  footer a{color:var(--brand)}
+  .banner{background:#fff8e6;border:1px solid #f0e0b6;color:#8a6d1f;font-size:12px;padding:10px 12px;border-radius:8px;margin-bottom:16px;display:none}
+  .banner.show{display:block}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="card">
+    <header>
+      <div class="badge">VIES</div>
+      <h1>Verificare coduri TVA</h1>
+    </header>
+    <p class="sub">Verifică validitatea numerelor de TVA intracomunitare prin serviciul oficial VIES al Comisiei Europene. Rulează prin proxy-ul local (fără restricții CORS).</p>
+
+    <div id="banner" class="banner"></div>
+
+    <div class="tabs">
+      <div class="tab active" data-tab="single">Verificare individuală</div>
+      <div class="tab" data-tab="batch">Verificare în masă</div>
+    </div>
+
+    <!-- ============ TAB INDIVIDUAL ============ -->
+    <div class="panel active" id="panel-single">
+      <div class="row">
+        <div class="col-country">
+          <label for="country">Stat membru</label>
+          <select id="country"></select>
+        </div>
+        <div class="col-number">
+          <label for="vat">Număr TVA (fără prefix)</label>
+          <input id="vat" type="text" placeholder="ex: 12345678" autocomplete="off">
+        </div>
+      </div>
+      <div class="hint">Poți lipi și codul complet (ex: <strong>RO12345678</strong>) — prefixul de țară e detectat automat.</div>
+      <button id="checkSingle">Verifică</button>
+
+      <div id="result" class="result">
+        <h2 id="resultTitle"></h2>
+        <div id="resultMsg"></div>
+        <div class="details" id="details"></div>
+      </div>
+    </div>
+
+    <!-- ============ TAB BATCH ============ -->
+    <div class="panel" id="panel-batch">
+      <label for="bulk">Listă de coduri TVA (unul pe rând)</label>
+      <textarea id="bulk" placeholder="RO12345678&#10;DE123456789&#10;FR12345678901&#10;ATU12345678"></textarea>
+      <div class="hint">
+        Un cod pe fiecare rând, cu prefixul de țară inclus (ex: <strong>RO12345678</strong>).<br>
+        Separatorii <strong>spațiu</strong>, <strong>punct</strong> sau <strong>„-”</strong> din interiorul codului sunt ignorați. Maxim 100 de coduri per cerere.
+      </div>
+      <button id="checkBatch">Verifică toate</button>
+
+      <div id="batchArea" style="display:none">
+        <div class="summary" id="summary"></div>
+        <div class="toolbar"><button class="btn-sm" id="exportCsv">⬇ Exportă CSV</button></div>
+        <div style="overflow-x:auto">
+          <table id="batchTable">
+            <thead><tr><th>#</th><th>Cod TVA</th><th>Status</th><th>Denumire</th><th>Adresă</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Sursă oficială: <a href="https://ec.europa.eu/taxation_customs/vies/#/vat-validation" target="_blank" rel="noopener">Vies on-the-Web — European Commission</a>.<br>
+      Date preluate în timp real din registrele naționale de TVA. Comisia Europeană nu garantează acuratețea datelor.
+    </footer>
+  </div>
+</div>
+
+<script>
+/* Endpoint-ul proxy-ului local. Daca deschizi fisierul prin server.js, ramane relativ.
+   Daca il gazduiesti separat, pune aici URL-ul complet al proxy-ului. */
+const API_BASE = "";  // ex: "http://localhost:3000"
+
+const MEMBER_STATES = [
+  ["AT","Austria"],["BE","Belgia"],["BG","Bulgaria"],["CY","Cipru"],
+  ["CZ","Cehia"],["DE","Germania"],["DK","Danemarca"],["EE","Estonia"],
+  ["EL","Grecia"],["ES","Spania"],["FI","Finlanda"],["FR","Franța"],
+  ["HR","Croația"],["HU","Ungaria"],["IE","Irlanda"],["IT","Italia"],
+  ["LT","Lituania"],["LU","Luxemburg"],["LV","Letonia"],["MT","Malta"],
+  ["NL","Țările de Jos"],["PL","Polonia"],["PT","Portugalia"],["RO","România"],
+  ["SE","Suedia"],["SI","Slovenia"],["SK","Slovacia"],["XI","Irlanda de Nord"]
+];
+const knownCodes = MEMBER_STATES.map(m=>m[0]);
+
+/* ---- taburi ---- */
+document.querySelectorAll(".tab").forEach(t=>{
+  t.addEventListener("click",()=>{
+    document.querySelectorAll(".tab").forEach(x=>x.classList.remove("active"));
+    document.querySelectorAll(".panel").forEach(x=>x.classList.remove("active"));
+    t.classList.add("active");
+    document.getElementById("panel-"+t.dataset.tab).classList.add("active");
+  });
+});
+
+/* ---- populare selector tara ---- */
+const countrySel=document.getElementById("country");
+MEMBER_STATES.forEach(([c,n])=>{
+  const o=document.createElement("option");o.value=c;o.textContent=`${c} — ${n}`;
+  if(c==="RO")o.selected=true;countrySel.appendChild(o);
+});
+
+const vatInput=document.getElementById("vat");
+vatInput.addEventListener("input",()=>{
+  const raw=vatInput.value.toUpperCase().replace(/\s+/g,"");
+  const p=raw.slice(0,2);
+  if(knownCodes.includes(p)&&/\d/.test(raw.slice(2)))countrySel.value=p;
+});
+vatInput.addEventListener("keydown",e=>{if(e.key==="Enter")doSingle();});
+document.getElementById("checkSingle").addEventListener("click",doSingle);
+document.getElementById("checkBatch").addEventListener("click",doBatch);
+
+function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function fmtDate(d){if(!d)return"";try{return new Date(d).toLocaleString("ro-RO");}catch{return d;}}
+
+async function apiPost(pathName,body){
+  const r=await fetch(API_BASE+pathName,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
+  if(!r.ok)throw new Error("HTTP "+r.status);
+  return r.json();
+}
+
+/* =================== VERIFICARE INDIVIDUALA =================== */
+const resultBox=document.getElementById("result");
+function showSingle(type,title,msg,details){
+  resultBox.className="result show "+type;
+  document.getElementById("resultTitle").textContent=title;
+  document.getElementById("resultMsg").textContent=msg||"";
+  const box=document.getElementById("details");box.innerHTML="";
+  (details||[]).forEach(([k,v])=>{
+    if(!v)return;const row=document.createElement("div");
+    row.innerHTML=`<span class="k">${k}</span><span class="v">${escapeHtml(v)}</span>`;box.appendChild(row);
+  });
+}
+async function doSingle(){
+  let country=countrySel.value;
+  let number=vatInput.value.toUpperCase().replace(/\s+/g,"");
+  if(number.slice(0,2)===country)number=number.slice(2);
+  if(!number){showSingle("warn","⚠️ Câmp gol","Introdu un număr de TVA.");return;}
+  const btn=document.getElementById("checkSingle");
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Se verifică...';resultBox.className="result";
+  try{
+    const d=await apiPost("/api/check",{countryCode:country,vatNumber:number});
+    const full=(d.countryCode||country)+(d.vatNumber||number);
+    if(d.error){showSingle("warn","⚠️ Nu s-a putut verifica","Serviciul a răspuns: "+d.error+". Încearcă din nou peste câteva minute.");}
+    else if(d.valid){showSingle("valid","✅ Cod TVA VALID",`Numărul ${full} este înregistrat și valid în VIES.`,
+      [["Cod TVA",full],["Stat membru",d.countryCode],["Denumire",d.name],["Adresă",d.address],["Data verificării",fmtDate(d.requestDate)]]);}
+    else{showSingle("invalid","❌ Cod TVA INVALID",`Numărul ${full} NU este valid în VIES. Posibile cauze: numărul nu există, nu e activat pentru tranzacții intra-UE, sau înregistrarea nu e finalizată.`,
+      [["Cod TVA",full],["Data verificării",fmtDate(d.requestDate)]]);}
+  }catch(e){
+    showSingle("warn","⚠️ Nu s-a putut contacta proxy-ul",`Cererea a eșuat (${e.message}). Verifică dacă serverul (server.js) rulează și dacă API_BASE este corect.`);
+  }finally{btn.disabled=false;btn.textContent="Verifică";}
+}
+
+/* =================== VERIFICARE IN MASA =================== */
+let lastResults=[];
+function parseLine(line){
+  let raw=line.toUpperCase().replace(/[\s.\-]/g,"");
+  if(!raw)return null;
+  const p=raw.slice(0,2);
+  if(knownCodes.includes(p))return{countryCode:p,vatNumber:raw.slice(2),full:raw};
+  return{countryCode:"",vatNumber:raw,full:raw}; // fara prefix valid
+}
+async function doBatch(){
+  const lines=document.getElementById("bulk").value.split(/\r?\n/).map(parseLine).filter(Boolean);
+  if(lines.length===0){alert("Introdu cel puțin un cod TVA.");return;}
+  const btn=document.getElementById("checkBatch");
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Se verifică '+lines.length+' coduri...';
+  try{
+    const items=lines.map(l=>({countryCode:l.countryCode,vatNumber:l.vatNumber}));
+    const data=await apiPost("/api/check-batch",{items});
+    lastResults=data.results;
+    renderBatch(data.summary,data.results);
+  }catch(e){
+    alert("Eroare: "+e.message+"\nVerifică dacă serverul (server.js) rulează.");
+  }finally{btn.disabled=false;btn.textContent="Verifică toate";}
+}
+function renderBatch(summary,results){
+  document.getElementById("batchArea").style.display="block";
+  document.getElementById("summary").innerHTML=
+    `<span class="chip t">Total: ${summary.total}</span>`+
+    `<span class="chip v">✅ Valide: ${summary.valid}</span>`+
+    `<span class="chip i">❌ Invalide: ${summary.invalid}</span>`+
+    (summary.errors?`<span class="chip e">⚠️ Erori: ${summary.errors}</span>`:``);
+  const tb=document.querySelector("#batchTable tbody");tb.innerHTML="";
+  results.forEach((r,i)=>{
+    let cls="er",label="⚠️ "+(r.error||"eroare");
+    if(!r.error&&r.valid){cls="ok";label="✅ VALID";}
+    else if(!r.error&&!r.valid){cls="no";label="❌ INVALID";}
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td>${i+1}</td><td>${escapeHtml(r.input||"")}</td>`+
+      `<td class="st ${cls}">${label}</td>`+
+      `<td>${escapeHtml(r.name||"")}</td><td>${escapeHtml(r.address||"")}</td>`;
+    tb.appendChild(tr);
+  });
+}
+/* export CSV */
+document.getElementById("exportCsv").addEventListener("click",()=>{
+  if(!lastResults.length)return;
+  const esc=s=>`"${String(s||"").replace(/"/g,'""')}"`;
+  const rows=[["Cod TVA","Status","Denumire","Adresa","Data verificarii"]];
+  lastResults.forEach(r=>{
+    const st=r.error?("EROARE: "+r.error):(r.valid?"VALID":"INVALID");
+    rows.push([r.input,st,r.name,r.address,r.requestDate]);
+  });
+  const csv=rows.map(r=>r.map(esc).join(",")).join("\r\n");
+  const blob=new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"});
+  const a=document.createElement("a");a.href=URL.createObjectURL(blob);
+  a.download="verificare_tva_vies.csv";a.click();
+});
+</script>
+</body>
+</html>
