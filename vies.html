@@ -21,7 +21,6 @@
   .badge{background:var(--brand);color:#fff;font-weight:700;border-radius:10px;padding:8px 12px;font-size:14px;letter-spacing:.5px}
   h1{font-size:22px;margin:0}
   p.sub{color:var(--muted);margin:6px 0 20px;font-size:14px;line-height:1.5}
-  /* taburi */
   .tabs{display:flex;gap:8px;margin-bottom:18px;border-bottom:1px solid var(--border)}
   .tab{padding:10px 16px;cursor:pointer;font-weight:600;font-size:14px;color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px}
   .tab.active{color:var(--brand);border-bottom-color:var(--brand)}
@@ -45,13 +44,15 @@
   .details div{display:flex;gap:8px;padding:3px 0;border-top:1px dashed rgba(0,0,0,.08)}
   .details span.k{font-weight:600;min-width:130px;color:var(--muted)}
   .details span.v{white-space:pre-line}
-  /* tabel batch */
   .summary{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0}
   .chip{padding:8px 14px;border-radius:20px;font-size:13px;font-weight:600}
   .chip.t{background:#eef2f7;color:#334155}
   .chip.v{background:var(--ok-bg);color:var(--ok)}
   .chip.i{background:var(--err-bg);color:var(--err)}
   .chip.e{background:var(--warn-bg);color:var(--warn)}
+  .progress{height:8px;background:#eef2f7;border-radius:6px;overflow:hidden;margin:6px 0 2px;display:none}
+  .progress.show{display:block}
+  .progress > i{display:block;height:100%;width:0;background:var(--brand);transition:width .2s}
   table{width:100%;border-collapse:collapse;margin-top:10px;font-size:13px}
   th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--border);vertical-align:top}
   th{background:#f8fafc;color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
@@ -64,8 +65,15 @@
   @keyframes spin{to{transform:rotate(360deg)}}
   footer{margin-top:18px;font-size:11px;color:var(--muted);text-align:center;line-height:1.5}
   footer a{color:var(--brand)}
-  .banner{background:#fff8e6;border:1px solid #f0e0b6;color:#8a6d1f;font-size:12px;padding:10px 12px;border-radius:8px;margin-bottom:16px;display:none}
+  .banner{font-size:12px;padding:10px 12px;border-radius:8px;margin-bottom:16px;display:none;line-height:1.5}
   .banner.show{display:block}
+  .banner.warn{background:#fff8e6;border:1px solid #f0e0b6;color:#8a6d1f}
+  .banner.err{background:var(--err-bg);border:1px solid #f5c6c0;color:var(--err)}
+  /* settings */
+  .settings{margin-top:14px;border-top:1px solid var(--border);padding-top:12px}
+  .settings summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--muted)}
+  .settings input{margin-top:8px;font-size:13px}
+  .settings .hint{margin-top:6px}
 </style>
 </head>
 <body>
@@ -75,7 +83,7 @@
       <div class="badge">VIES</div>
       <h1>Verificare coduri TVA</h1>
     </header>
-    <p class="sub">Verifică validitatea numerelor de TVA intracomunitare prin serviciul oficial VIES al Comisiei Europene. Rulează prin proxy-ul local (fără restricții CORS).</p>
+    <p class="sub">Verifică validitatea numerelor de TVA intracomunitare prin serviciul oficial VIES al Comisiei Europene. Funcționează pe GitHub Pages (găzduire statică) printr-un proxy CORS.</p>
 
     <div id="banner" class="banner"></div>
 
@@ -98,7 +106,6 @@
       </div>
       <div class="hint">Poți lipi și codul complet (ex: <strong>RO12345678</strong>) — prefixul de țară e detectat automat.</div>
       <button id="checkSingle">Verifică</button>
-
       <div id="result" class="result">
         <h2 id="resultTitle"></h2>
         <div id="resultMsg"></div>
@@ -115,7 +122,7 @@
         Separatorii <strong>spațiu</strong>, <strong>punct</strong> sau <strong>„-”</strong> din interiorul codului sunt ignorați. Maxim 100 de coduri per cerere.
       </div>
       <button id="checkBatch">Verifică toate</button>
-
+      <div class="progress" id="progress"><i></i></div>
       <div id="batchArea" style="display:none">
         <div class="summary" id="summary"></div>
         <div class="toolbar"><button class="btn-sm" id="exportCsv">⬇ Exportă CSV</button></div>
@@ -128,6 +135,17 @@
       </div>
     </div>
 
+    <details class="settings">
+      <summary>⚙️ Setări proxy (avansat)</summary>
+      <input id="proxyUrl" type="text" placeholder="https://numele-tau.workers.dev  sau  https://corsproxy.io/?url=">
+      <div class="hint">
+        VIES nu permite apeluri directe din browser (CORS), așa că apelurile trec printr-un proxy.<br>
+        • <strong>Recomandat:</strong> pune aici URL-ul propriului tău Cloudflare Worker (vezi <code>README.md</code>). Cel mai stabil.<br>
+        • <strong>Rapid, fără cont:</strong> lasă valoarea implicită (<code>corsproxy.io</code>). Poate fi ocazional indisponibil.<br>
+        Valoarea se salvează local în browser.
+      </div>
+    </details>
+
     <footer>
       Sursă oficială: <a href="https://ec.europa.eu/taxation_customs/vies/#/vat-validation" target="_blank" rel="noopener">Vies on-the-Web — European Commission</a>.<br>
       Date preluate în timp real din registrele naționale de TVA. Comisia Europeană nu garantează acuratețea datelor.
@@ -136,9 +154,55 @@
 </div>
 
 <script>
-/* Endpoint-ul proxy-ului local. Daca deschizi fisierul prin server.js, ramane relativ.
-   Daca il gazduiesti separat, pune aici URL-ul complet al proxy-ului. */
-const API_BASE = "";  // ex: "http://localhost:3000"
+/* ============================================================
+   CONFIGURARE PROXY
+   VIES nu trimite anteturi CORS, deci un browser nu poate apela
+   direct API-ul. Trecem printr-un proxy CORS.
+   - workers.dev / worker propriu  -> POST direct, body transmis ca atare
+   - corsproxy.io (implicit)       -> ?url=<VIES_URL codat>
+   Poți schimba proxy-ul din panoul "Setări proxy".
+============================================================ */
+const VIES_URL = "https://ec.europa.eu/taxation_customs/vies/rest-api/check-vat-number";
+const DEFAULT_PROXY = "https://corsproxy.io/?url=";
+function getProxy(){ return (localStorage.getItem("vies_proxy") || DEFAULT_PROXY).trim(); }
+
+const proxyInput = document.getElementById("proxyUrl");
+proxyInput.value = getProxy();
+proxyInput.addEventListener("change", ()=>{
+  const v = proxyInput.value.trim();
+  if(v) localStorage.setItem("vies_proxy", v); else localStorage.removeItem("vies_proxy");
+  showBanner("", "");
+});
+
+/* Construiește URL + trimite cererea POST către VIES prin proxy */
+async function viesCheck(countryCode, vatNumber){
+  const proxy = getProxy();
+  const body = JSON.stringify({ countryCode, vatNumber });
+  let url, opts;
+  if(proxy.includes("?url=") || proxy.includes("?u=")){
+    // proxy tip corsproxy.io -> codăm URL-ul țintă în query, dar VIES cere POST
+    // corsproxy.io transmite metoda și body-ul mai departe
+    url = proxy + encodeURIComponent(VIES_URL);
+    opts = { method:"POST", headers:{"Content-Type":"application/json"}, body };
+  } else {
+    // worker propriu care face forward direct la VIES
+    url = proxy.replace(/\/+$/,"");
+    opts = { method:"POST", headers:{"Content-Type":"application/json"}, body };
+  }
+  const r = await fetch(url, opts);
+  if(!r.ok) throw new Error("HTTP " + r.status);
+  const data = await r.json();
+  // normalizează câmpurile relevante
+  return {
+    countryCode: data.countryCode || countryCode,
+    vatNumber: data.vatNumber || vatNumber,
+    valid: !!data.valid,
+    name: (data.name && data.name !== "---") ? data.name : "",
+    address: (data.address && data.address !== "---") ? data.address : "",
+    requestDate: data.requestDate || "",
+    raw: data
+  };
+}
 
 const MEMBER_STATES = [
   ["AT","Austria"],["BE","Belgia"],["BG","Bulgaria"],["CY","Cipru"],
@@ -150,6 +214,13 @@ const MEMBER_STATES = [
   ["SE","Suedia"],["SI","Slovenia"],["SK","Slovacia"],["XI","Irlanda de Nord"]
 ];
 const knownCodes = MEMBER_STATES.map(m=>m[0]);
+
+/* ---- banner ---- */
+const bannerEl = document.getElementById("banner");
+function showBanner(type, msg){
+  if(!msg){ bannerEl.className="banner"; bannerEl.textContent=""; return; }
+  bannerEl.className="banner show "+type; bannerEl.innerHTML=msg;
+}
 
 /* ---- taburi ---- */
 document.querySelectorAll(".tab").forEach(t=>{
@@ -167,7 +238,6 @@ MEMBER_STATES.forEach(([c,n])=>{
   const o=document.createElement("option");o.value=c;o.textContent=`${c} — ${n}`;
   if(c==="RO")o.selected=true;countrySel.appendChild(o);
 });
-
 const vatInput=document.getElementById("vat");
 vatInput.addEventListener("input",()=>{
   const raw=vatInput.value.toUpperCase().replace(/\s+/g,"");
@@ -180,12 +250,7 @@ document.getElementById("checkBatch").addEventListener("click",doBatch);
 
 function escapeHtml(s){return String(s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
 function fmtDate(d){if(!d)return"";try{return new Date(d).toLocaleString("ro-RO");}catch{return d;}}
-
-async function apiPost(pathName,body){
-  const r=await fetch(API_BASE+pathName,{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)});
-  if(!r.ok)throw new Error("HTTP "+r.status);
-  return r.json();
-}
+const sleep = ms => new Promise(r=>setTimeout(r,ms));
 
 /* =================== VERIFICARE INDIVIDUALA =================== */
 const resultBox=document.getElementById("result");
@@ -203,19 +268,23 @@ async function doSingle(){
   let country=countrySel.value;
   let number=vatInput.value.toUpperCase().replace(/\s+/g,"");
   if(number.slice(0,2)===country)number=number.slice(2);
+  number = number.replace(/[.\-]/g,"");
   if(!number){showSingle("warn","⚠️ Câmp gol","Introdu un număr de TVA.");return;}
   const btn=document.getElementById("checkSingle");
-  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Se verifică...';resultBox.className="result";
+  btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Se verifică...';resultBox.className="result";showBanner("","");
   try{
-    const d=await apiPost("/api/check",{countryCode:country,vatNumber:number});
-    const full=(d.countryCode||country)+(d.vatNumber||number);
-    if(d.error){showSingle("warn","⚠️ Nu s-a putut verifica","Serviciul a răspuns: "+d.error+". Încearcă din nou peste câteva minute.");}
-    else if(d.valid){showSingle("valid","✅ Cod TVA VALID",`Numărul ${full} este înregistrat și valid în VIES.`,
-      [["Cod TVA",full],["Stat membru",d.countryCode],["Denumire",d.name],["Adresă",d.address],["Data verificării",fmtDate(d.requestDate)]]);}
-    else{showSingle("invalid","❌ Cod TVA INVALID",`Numărul ${full} NU este valid în VIES. Posibile cauze: numărul nu există, nu e activat pentru tranzacții intra-UE, sau înregistrarea nu e finalizată.`,
-      [["Cod TVA",full],["Data verificării",fmtDate(d.requestDate)]]);}
+    const d=await viesCheck(country, number);
+    const full=d.countryCode+d.vatNumber;
+    if(d.valid){
+      showSingle("valid","✅ Cod TVA VALID",`Numărul ${full} este înregistrat și valid în VIES.`,
+        [["Cod TVA",full],["Stat membru",d.countryCode],["Denumire",d.name],["Adresă",d.address],["Data verificării",fmtDate(d.requestDate)]]);
+    } else {
+      showSingle("invalid","❌ Cod TVA INVALID",`Numărul ${full} NU este valid în VIES. Posibile cauze: numărul nu există, nu e activat pentru tranzacții intra-UE, sau înregistrarea nu e finalizată.`,
+        [["Cod TVA",full],["Data verificării",fmtDate(d.requestDate)]]);
+    }
   }catch(e){
-    showSingle("warn","⚠️ Nu s-a putut contacta proxy-ul",`Cererea a eșuat (${e.message}). Verifică dacă serverul (server.js) rulează și dacă API_BASE este corect.`);
+    showSingle("warn","⚠️ Nu s-a putut verifica",`Cererea a eșuat (${e.message}).`);
+    showBanner("err","Verificarea a eșuat. Cel mai probabil proxy-ul CORS este indisponibil. Deschide <strong>⚙️ Setări proxy</strong> și folosește propriul tău Cloudflare Worker (vezi <code>README.md</code>).");
   }finally{btn.disabled=false;btn.textContent="Verifică";}
 }
 
@@ -226,21 +295,53 @@ function parseLine(line){
   if(!raw)return null;
   const p=raw.slice(0,2);
   if(knownCodes.includes(p))return{countryCode:p,vatNumber:raw.slice(2),full:raw};
-  return{countryCode:"",vatNumber:raw,full:raw}; // fara prefix valid
+  return{countryCode:"",vatNumber:raw,full:raw};
 }
 async function doBatch(){
   const lines=document.getElementById("bulk").value.split(/\r?\n/).map(parseLine).filter(Boolean);
   if(lines.length===0){alert("Introdu cel puțin un cod TVA.");return;}
+  if(lines.length>100){alert("Maxim 100 de coduri per cerere.");return;}
   const btn=document.getElementById("checkBatch");
+  const prog=document.getElementById("progress"), progBar=prog.querySelector("i");
   btn.disabled=true;btn.innerHTML='<span class="spinner"></span>Se verifică '+lines.length+' coduri...';
-  try{
-    const items=lines.map(l=>({countryCode:l.countryCode,vatNumber:l.vatNumber}));
-    const data=await apiPost("/api/check-batch",{items});
-    lastResults=data.results;
-    renderBatch(data.summary,data.results);
-  }catch(e){
-    alert("Eroare: "+e.message+"\nVerifică dacă serverul (server.js) rulează.");
-  }finally{btn.disabled=false;btn.textContent="Verifică toate";}
+  prog.classList.add("show");progBar.style.width="0%";showBanner("","");
+
+  const results=new Array(lines.length);
+  let done=0, hadError=false;
+  const CONCURRENCY=4;                 // câte cereri în paralel (blând cu VIES)
+  let idx=0;
+  async function worker(){
+    while(idx<lines.length){
+      const i=idx++;
+      const l=lines[i];
+      try{
+        if(!l.countryCode){
+          results[i]={input:l.full,valid:false,error:"prefix țară lipsă/necunoscut"};
+        } else {
+          const d=await viesCheck(l.countryCode,l.vatNumber.replace(/[.\-]/g,""));
+          results[i]={input:d.countryCode+d.vatNumber,valid:d.valid,name:d.name,address:d.address,requestDate:d.requestDate};
+        }
+      }catch(e){
+        hadError=true;
+        results[i]={input:l.full,error:e.message};
+      }
+      done++;progBar.style.width=Math.round(done/lines.length*100)+"%";
+      await sleep(120);              // mică pauză -> respectă limita soft VIES
+    }
+  }
+  await Promise.all(Array.from({length:Math.min(CONCURRENCY,lines.length)},worker));
+
+  lastResults=results;
+  const summary={
+    total:results.length,
+    valid:results.filter(r=>!r.error&&r.valid).length,
+    invalid:results.filter(r=>!r.error&&!r.valid).length,
+    errors:results.filter(r=>r.error).length
+  };
+  renderBatch(summary,results);
+  if(hadError) showBanner("warn","Unele coduri nu au putut fi verificate (proxy indisponibil sau registrul țării temporar oprit). Reîncearcă mai târziu sau folosește propriul Cloudflare Worker din <strong>⚙️ Setări proxy</strong>.");
+  prog.classList.remove("show");
+  btn.disabled=false;btn.textContent="Verifică toate";
 }
 function renderBatch(summary,results){
   document.getElementById("batchArea").style.display="block";
@@ -261,6 +362,7 @@ function renderBatch(summary,results){
     tb.appendChild(tr);
   });
 }
+
 /* export CSV */
 document.getElementById("exportCsv").addEventListener("click",()=>{
   if(!lastResults.length)return;
